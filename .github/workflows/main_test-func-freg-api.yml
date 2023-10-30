@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js project to Azure Function App - test-func-freg-api
+name: Build and deploy Node.js project to Azure Function App - test-func-acos-v1
 
 on:
   push:
@@ -11,11 +11,11 @@ on:
 
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
-  NODE_VERSION: '16.x' # set this to the node version to use (supports 8.x, 10.x, 12.x)
+  NODE_VERSION: '18.x' # set this to the node version to use (supports 8.x, 10.x, 12.x)
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v2
@@ -38,7 +38,7 @@ jobs:
         uses: Azure/functions-action@v1
         id: fa
         with:
-          app-name: 'test-func-freg-api'
+          app-name: 'vfkdlzfellesapifregapi'
           slot-name: 'Production'
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_9128F71807DB4369AE424ED548DB6DB6 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_DEV }}
