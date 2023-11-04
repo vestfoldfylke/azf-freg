@@ -34,10 +34,22 @@ Headers: {
 ```
 
 ## POST /Personer
-### Example payload
+### Example payload with ssn
 ```json
 {
   "ssn": "12345678910",
+  "includeRawFreg": false, // OPTIONAL - defaults to false
+  "includeFortrolig": false, // OPTIONAL - defaults to false if not provided
+  "includeForeldreansvar": false // OPTIONAL - defaults to false if not provided
+}
+```
+
+### Example payload with name and birthdate
+**NOTE** Only returns person if it found exactly one match - if more than one match, none are returned 
+```json
+{
+  "name": "Søt fille", // Must have both firstname and lastname (middle name not required for match)
+	"birthdate": "19540626", // YYYYMMDD
   "includeRawFreg": false, // OPTIONAL - defaults to false
   "includeFortrolig": false, // OPTIONAL - defaults to false if not provided
   "includeForeldreansvar": false // OPTIONAL - defaults to false if not provided
