@@ -318,5 +318,5 @@ If set to true - returns who has parent-responsibility for the person/child retu
 [Spørsmål og svar](https://skatteetaten.github.io/folkeregisteret-api-dokumentasjon/sporsmal-og-svar/)
 [Informasjonsmodell](https://skatteetaten.github.io/folkeregisteret-api-dokumentasjon/informasjonsmodell/)
 
-Funksjonen tar seg ikke av autentisering. Dette må gjøres av AzureAD / EntraID eller Apim.
+Funksjonen tar seg ikke av autentisering. Dette må gjøres av AzureAD eller Apim.
 
