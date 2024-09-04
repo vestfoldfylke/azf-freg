@@ -34,7 +34,7 @@ module.exports = async function (context, req) {
   }
 
   if (!req.body) return { status: 400, body: 'Body is missing' }
-  const { ssn, name, birthdate, includeRawFreg, includeFortrolig, includeForeldreansvar } = req.body
+  const { ssn, name, birthdate, includeRawFreg, includeFortrolig, includeForeldreansvar, includeFamilie } = req.body
 
   if ((!ssn) && !(name && birthdate)) return { status: 400, body: 'Body is missing required property "ssn" or "name" and "birthdate"' }
 
@@ -43,13 +43,14 @@ module.exports = async function (context, req) {
   const options = {
     includeRawFreg: includeRawFreg || false,
     includeFortrolig: includeFortrolig || false,
-    includeForeldreansvar: includeForeldreansvar || false
+    includeForeldreansvar: includeForeldreansvar || false,
+    includeFamilie: includeFamilie || false
   }
 
   const defaultParts = 'part=person-basis&part=relasjon-utvidet'
 
   if (ssn) {
-    if (ssn.length !== 11) return { status: 400, body: 'Property "ssn" must be lenght 11' }
+    if (ssn.length !== 11) return { status: 400, body: 'Property "ssn" must be length 11' }
     url = `${freg.url}/${freg.rettighet}/api/v1/personer/${ssn}?${defaultParts}`
   } else if (name && birthdate) {
     if (typeof name !== 'string') return { status: 400, body: 'Property "name" must be string' }

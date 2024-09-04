@@ -9,8 +9,8 @@
     "test:lint": "standard"
   },
   "dependencies": {
-    "@vtfk/logger": "^4.3.2",
-    "@vtfk/maskinporten-auth": "^2.0.4",
+    "@vtfk/logger": "^6.0.1",
+    "@vtfk/maskinporten-auth": "^2.0.5",
     "axios": "^1.3.4",
     "capitalize": "^2.0.4",
     "jsonwebtoken": "^9.0.0",

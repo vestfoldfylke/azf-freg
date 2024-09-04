@@ -111,3 +111,6 @@ dist
 
 # Local settings
 local.settings.json
+
+# Mac
+.DS_Store
