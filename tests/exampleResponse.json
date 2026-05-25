@@ -85,9 +85,7 @@
       "gyldighetstidspunkt": "2023-03-06T09:15:29.017Z",
       "kilde": "string",
       "opphoerstidspunkt": "2023-03-06T09:15:29.017Z",
-      "spraak": [
-        "nordsamisk"
-      ]
+      "spraak": ["nordsamisk"]
     }
   ],
   "deltBosted": [
@@ -169,9 +167,7 @@
         "fornavn": "string",
         "mellomnavn": "string"
       },
-      "statsborgerskap": [
-        "string"
-      ]
+      "statsborgerskap": ["string"]
     }
   },
   "familierelasjon": [
@@ -331,9 +327,7 @@
     {
       "aarsak": "string",
       "adresse": {
-        "adresselinje": [
-          "string"
-        ],
+        "adresselinje": ["string"],
         "landkode": "string",
         "postnummer": "string",
         "poststedsnavn": "string"
@@ -515,9 +509,7 @@
       "kilde": "string",
       "opphoerstidspunkt": "2023-03-06T09:15:29.019Z",
       "postadresseIFrittFormat": {
-        "adresselinje": [
-          "string"
-        ],
+        "adresselinje": ["string"],
         "poststed": {
           "postnummer": "string",
           "poststedsnavn": "string"
@@ -571,9 +563,7 @@
         "region": "string"
       },
       "utenlandskAdresseIFrittFormat": {
-        "adresselinje": [
-          "string"
-        ],
+        "adresselinje": ["string"],
         "byEllerStedsnavn": "string",
         "landkode": "string",
         "postkode": "string"
@@ -589,9 +579,7 @@
       "gyldighetstidspunkt": "2023-03-06T09:15:29.019Z",
       "kilde": "string",
       "kontaktadresseIFrittFormat": {
-        "adresselinje": [
-          "string"
-        ],
+        "adresselinje": ["string"],
         "landkode": "string"
       },
       "opphoerstidspunkt": "2023-03-06T09:15:29.019Z",
@@ -701,9 +689,7 @@
             "fornavn": "string",
             "mellomnavn": "string"
           },
-          "statsborgerskap": [
-            "string"
-          ]
+          "statsborgerskap": ["string"]
         },
         "omfang": "utlendingssakerPersonligeOgOekonomiskeInteresser",
         "omfangetErInnenPersonligOmraade": true,

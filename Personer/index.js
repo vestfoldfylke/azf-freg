@@ -5,7 +5,7 @@ const decodeAccessToken = require('../lib/decodeAadToken')
 const { logConfig, logger } = require('@vtfk/logger')
 const { freg, apiRole } = require('../config')
 
-module.exports = async function (context, req) {
+module.exports = async (context, req) => {
   logConfig({
     prefix: 'azf-freg - Personer',
     azure: {
@@ -36,7 +36,7 @@ module.exports = async function (context, req) {
   if (!req.body) return { status: 400, body: 'Body is missing' }
   const { ssn, name, birthdate, includeRawFreg, includeFortrolig, includeForeldreansvar, includeFamilie } = req.body
 
-  if ((!ssn) && !(name && birthdate)) return { status: 400, body: 'Body is missing required property "ssn" or "name" and "birthdate"' }
+  if (!ssn && !(name && birthdate)) return { status: 400, body: 'Body is missing required property "ssn" or "name" and "birthdate"' }
 
   let url = 'dinna_blir_lagd_lenger_ned.vtfk.no'
 

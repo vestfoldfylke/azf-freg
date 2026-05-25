@@ -150,10 +150,7 @@
       "gyldighetstidspunkt": "2021-10-15T10:21:43.227693Z",
       "adressegradering": "ugradert",
       "utenlandskAdresseIFrittFormat": {
-        "adresselinje": [
-          "Testadresselinje 1",
-          "Testadresselinje 2"
-        ],
+        "adresselinje": ["Testadresselinje 1", "Testadresselinje 2"],
         "postkode": "Testpostkode utland 55",
         "byEllerStedsnavn": "Litt testby- eller stedsnavn",
         "landkode": "CV"

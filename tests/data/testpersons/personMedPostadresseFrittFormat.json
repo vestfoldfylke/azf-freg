@@ -130,9 +130,7 @@
       "gyldighetstidspunkt": "2016-10-11T22:00:00Z",
       "kilde": "Synutopia",
       "postadresseIFrittFormat": {
-        "adresselinje": [
-          "POSTBOKS 146 BLEIE"
-        ],
+        "adresselinje": ["POSTBOKS 146 BLEIE"],
         "poststed": {
           "poststedsnavn": "GUGGENHEIM",
           "postnummer": "3222"
@@ -149,10 +147,7 @@
       "gyldighetstidspunkt": "2021-10-15T10:21:43.227693Z",
       "adressegradering": "ugradert",
       "utenlandskAdresseIFrittFormat": {
-        "adresselinje": [
-          "Testadresselinje 1",
-          "Testadresselinje 2"
-        ],
+        "adresselinje": ["Testadresselinje 1", "Testadresselinje 2"],
         "postkode": "Testpostkode utland 55",
         "byEllerStedsnavn": "Litt testby- eller stedsnavn",
         "landkode": "CV"

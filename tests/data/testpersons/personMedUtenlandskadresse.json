@@ -149,19 +149,16 @@
       "aarsak": "Postadresse",
       "gyldighetstidspunkt": "2021-10-15T10:21:43.227693Z",
       "adressegradering": "ugradert",
-      "utenlandskAdresse": { 
-        "adressenavn": "Gatan 10", 
-        "postkode": "SE-412 50", 
-        "byEllerStedsnavn": "Gothenburg", 
+      "utenlandskAdresse": {
+        "adressenavn": "Gatan 10",
+        "postkode": "SE-412 50",
+        "byEllerStedsnavn": "Gothenburg",
         "landkode": "SE",
         "region": "Västre Götaland",
         "coAdressenavn": "Erik Nilsson"
       },
       "utenlandskAdresseIFrittFormat": {
-        "adresselinje": [
-          "Testadresselinje 1",
-          "Testadresselinje 2"
-        ],
+        "adresselinje": ["Testadresselinje 1", "Testadresselinje 2"],
         "postkode": "Testpostkode utland 55",
         "byEllerStedsnavn": "Litt testby- eller stedsnavn",
         "landkode": "CV"
