@@ -1,29 +1,17 @@
 {
   "name": "azf-freg",
   "version": "2.1.0",
-  "description": "",
+  "description": "Azure function for calling FREG",
   "scripts": {
-    "start": "func start",
-    "test": "standard && jest",
-    "test:local": "jest --verbose",
-    "test:lint": "standard"
-  },
-  "dependencies": {
-    "@vtfk/logger": "^6.3.4",
-    "@vtfk/maskinporten-auth": "^2.0.5",
-    "axios": "^1.12.2",
-    "capitalize": "^2.0.4",
-    "jsonwebtoken": "^9.0.0",
-    "node-cache": "^5.1.2"
+    "build": "tsc",
+    "test": "biome check",
+    "start": "npm run build && func start",
+    "lint": "npx @biomejs/biome check",
+    "lint:fix": "npx @biomejs/biome check --write",
+    "refresh": "rm -rf node_modules/ && rm package-lock.json && npm i",
+    "dev": "npm run build && func start"
   },
   "devDependencies": {
-    "@types/jest": "^30.0.0",
-    "jest": "^30.2.0",
-    "standard": "^17.1.2"
-  },
-  "standard": {
-    "env": [
-      "jest"
-    ]
+    "@biomejs/biome": "2.4.15"
   }
 }
