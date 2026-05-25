@@ -15,10 +15,14 @@ module.exports = async (context, req) => {
   })
   logger('info', ['new Request. Checking token'])
   const decoded = decodeAccessToken(req.headers.authorization)
-  if (!decoded.verified) return { status: 401, body: decoded.msg }
-  if (!decoded.roles.includes(apiRole)) return { status: 401, body: 'Access token does not include required role for this operation' }
+  if (!decoded.verified) {
+    return { status: 401, body: decoded.msg }
+  }
+  if (!decoded.roles.includes(apiRole)) {
+    return { status: 401, body: 'Access token does not include required role for this operation' }
+  }
   logConfig({
-    prefix: `azf-freg - Personer - ${decoded.appid}${decoded.upn ? ' - ' + decoded.upn : ''}`,
+    prefix: `azf-freg - Personer - ${decoded.appid}${decoded.upn ? ` - ${decoded.upn}` : ''}`,
     azure: {
       context,
       excludeInvocationId: true
@@ -33,10 +37,14 @@ module.exports = async (context, req) => {
     return { status: 500, body: error.toString() }
   }
 
-  if (!req.body) return { status: 400, body: 'Body is missing' }
+  if (!req.body) {
+    return { status: 400, body: 'Body is missing' }
+  }
   const { ssn, name, birthdate, includeRawFreg, includeFortrolig, includeForeldreansvar, includeFamilie } = req.body
 
-  if (!ssn && !(name && birthdate)) return { status: 400, body: 'Body is missing required property "ssn" or "name" and "birthdate"' }
+  if (!ssn && !(name && birthdate)) {
+    return { status: 400, body: 'Body is missing required property "ssn" or "name" and "birthdate"' }
+  }
 
   let url = 'dinna_blir_lagd_lenger_ned.vtfk.no'
 
@@ -50,11 +58,17 @@ module.exports = async (context, req) => {
   const defaultParts = 'part=person-basis&part=relasjon-utvidet'
 
   if (ssn) {
-    if (ssn.length !== 11) return { status: 400, body: 'Property "ssn" must be length 11' }
+    if (ssn.length !== 11) {
+      return { status: 400, body: 'Property "ssn" must be length 11' }
+    }
     url = `${freg.url}/${freg.rettighet}/api/v1/personer/${ssn}?${defaultParts}`
   } else if (name && birthdate) {
-    if (typeof name !== 'string') return { status: 400, body: 'Property "name" must be string' }
-    if (birthdate.length !== 8) return { status: 400, body: 'Property "birthdate" must be format "YYYYMMDD"' }
+    if (typeof name !== 'string') {
+      return { status: 400, body: 'Property "name" must be string' }
+    }
+    if (birthdate.length !== 8) {
+      return { status: 400, body: 'Property "birthdate" must be format "YYYYMMDD"' }
+    }
     url = `${freg.url}/${freg.rettighet}/api/v1/personer/entydigsoek?foedselsdato=${birthdate}&navn=${encodeURIComponent(name)}&${defaultParts}`
   } else {
     throw new Error('Huh, dette skal ikke være mulig...')
