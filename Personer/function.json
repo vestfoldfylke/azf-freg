@@ -1,4 +1,6 @@
 {
+  "scriptFile": "../dist/Personer/index.js",
+  "entryPoint": "handler",
   "bindings": [
     {
       "authLevel": "anonymous",

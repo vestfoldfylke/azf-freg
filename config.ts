@@ -1,4 +1,4 @@
-module.exports = {
+export const config = {
   env: process.env.NODE_ENV ?? 'dev',
   maskinporten: {
     discoveryUrl: process.env.MASKINPORTEN_DISCOVERY_URL,

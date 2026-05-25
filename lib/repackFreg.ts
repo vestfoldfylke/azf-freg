@@ -2,9 +2,9 @@ const addressDelimiter = ', '
 
 const skipWords = /^(i|og|von|av|fra|de)$/
 
-const capitalizeWord = (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+const capitalizeWord = (word: string): string => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
 
-const capitalizeWords = (data) =>
+export const capitalizeWords = (data: string): string =>
   data
     .split(' ')
     .map((word, index) => {
@@ -13,7 +13,7 @@ const capitalizeWords = (data) =>
     })
     .join(' ')
 
-const trimAddress = (address) => {
+const trimAddress = (address: string): string => {
   const delimiterLength = addressDelimiter.length
   const lastChars = address.substring(address.length - delimiterLength, address.length + 1)
   if (lastChars === addressDelimiter) {
@@ -22,7 +22,164 @@ const trimAddress = (address) => {
   return address
 }
 
-const defaultPostAdresse = {
+// ── FREG API response types ──────────────────────────────────────────────────
+
+interface PoststedInfo {
+  postnummer: string
+  poststedsnavn: string
+}
+
+interface VegAdresse {
+  adressenavn: string
+  adressenummer?: {
+    husnummer: string
+    husbokstav?: string
+  }
+  poststed: PoststedInfo
+}
+
+interface MatrikkelAdresse {
+  coAdressenavn?: string
+  adressetilleggsnavn?: string
+  poststed: PoststedInfo
+}
+
+interface PostboksAdresse {
+  postbokseier?: string
+  postboks: string
+  poststed: PoststedInfo
+}
+
+interface PostadresseIFrittFormat {
+  adresselinje?: string[]
+  poststed: PoststedInfo
+}
+
+interface UtenlandskAdresse {
+  coAdressenavn?: string
+  postboks?: string
+  adressenavn?: string
+  bygning?: string
+  boenhet?: string
+  etasjenummer?: string
+  byEllerStedsnavn?: string
+  region?: string
+  distriktsnavn?: string
+  postkode?: string
+  landkode: string
+}
+
+interface UtenlandskAdresseIFrittFormat {
+  adresselinje?: string[]
+  postkode?: string
+  byEllerStedsnavn?: string
+  landkode: string
+}
+
+interface FregAddressEntry {
+  erGjeldende: boolean
+  adressegradering: string
+  vegadresse?: VegAdresse
+  matrikkeladresse?: MatrikkelAdresse
+  ukjentBosted?: unknown
+  postboksadresse?: PostboksAdresse
+  postadresseIFrittFormat?: PostadresseIFrittFormat
+  utenlandskAdresse?: UtenlandskAdresse
+  utenlandskAdresseIFrittFormat?: UtenlandskAdresseIFrittFormat
+  adressenErUkjent?: boolean
+}
+
+interface FregStatus {
+  erGjeldende: boolean
+  status: string
+}
+
+interface FregNavn {
+  erGjeldende: boolean
+  fornavn: string
+  mellomnavn?: string
+  etternavn: string
+}
+
+interface FregIdentifikasjonsnummer {
+  erGjeldende: boolean
+  foedselsEllerDNummer: string
+}
+
+interface FregFoedsel {
+  erGjeldende: boolean
+  foedselsdato: string
+}
+
+interface FregDoedsfall {
+  erGjeldende: boolean
+}
+
+interface FregAdressebeskyttelse {
+  erGjeldende: boolean
+  graderingsnivaa: string
+}
+
+export interface FregRelasjon {
+  erGjeldende: boolean
+  [key: string]: unknown
+}
+
+export interface FregPerson {
+  status: FregStatus[]
+  navn: FregNavn[]
+  identifikasjonsnummer: FregIdentifikasjonsnummer[]
+  foedsel: FregFoedsel[]
+  doedsfall?: FregDoedsfall
+  adressebeskyttelse?: FregAdressebeskyttelse[]
+  bostedsadresse?: FregAddressEntry[]
+  deltBosted?: FregAddressEntry[]
+  oppholdsadresse?: FregAddressEntry[]
+  postadresse?: FregAddressEntry[]
+  postadresseIUtlandet?: FregAddressEntry[]
+  foreldreansvar?: FregRelasjon[]
+  familierelasjon?: FregRelasjon[]
+}
+
+export interface RepackOptions {
+  includeRawFreg?: boolean
+  includeFortrolig?: boolean
+  includeForeldreansvar?: boolean
+  includeFamilie?: boolean
+}
+
+export interface Address {
+  adressegradering: string
+  gateadresse: string
+  postnummer: string
+  poststed: string
+  landkode: string
+}
+
+export interface RepackedPerson {
+  foedselsEllerDNummer: string
+  status: string
+  kanKontaktes: boolean
+  fornavn: string
+  etternavn: string
+  fulltnavn: string
+  foedselsdato: string | undefined
+  alder: number
+  doedsfall: FregDoedsfall | null
+  adressebeskyttelse: string[]
+  bostedsadresse: Address | null
+  deltbostedsadresse: Address | null
+  oppholdsadresse: Address | null
+  postadresse: Address
+  postadresseIUtlandet: Address | null
+  foreldreansvar?: FregRelasjon[]
+  familie?: FregRelasjon[]
+  rawFreg?: FregPerson
+}
+
+// ── Address helpers ──────────────────────────────────────────────────────────
+
+const defaultPostAdresse: Address = {
   adressegradering: 'ugradert',
   gateadresse: 'Ukjent adresse',
   postnummer: '9999',
@@ -30,15 +187,17 @@ const defaultPostAdresse = {
   landkode: 'NO'
 }
 
-const getAddress = (address, options = {}) => {
+const getAddress = (address: FregAddressEntry | null, options: RepackOptions = {}): Address | null => {
   const { includeFortrolig } = options
   if (!address) {
     return null
   }
-  const usefulAddress = {
+
+  const usefulAddress: Address = {
     ...defaultPostAdresse,
     adressegradering: address.adressegradering
   }
+
   if (usefulAddress.adressegradering.toLowerCase() === 'fortrolig' && !includeFortrolig) {
     usefulAddress.gateadresse = 'Fortrolig adresse'
     return usefulAddress
@@ -51,6 +210,7 @@ const getAddress = (address, options = {}) => {
     usefulAddress.gateadresse = 'Klientadresse'
     return usefulAddress
   }
+
   if (address.vegadresse) {
     usefulAddress.gateadresse = address.vegadresse.adressenummer
       ? `${address.vegadresse.adressenavn} ${address.vegadresse.adressenummer.husnummer}${address.vegadresse.adressenummer.husbokstav ?? ''}`
@@ -123,18 +283,26 @@ const getAddress = (address, options = {}) => {
   } else {
     throw new Error('This is not an address!')
   }
+
   return usefulAddress
 }
 
-module.exports = (fregRes, options = {}) => {
-  // gå gjennom freg objktet -> pakk ut standard-attributtene vi ønsker å bruke
-  // feltet adressebeskyttelse er knyttet mot personen, adresseelemeneter har i tillegg et eget adressegraderingsfelt
+// ── Main export ──────────────────────────────────────────────────────────────
+
+export const repackFreg = (fregRes: FregPerson, options: RepackOptions = {}): RepackedPerson => {
   const { includeRawFreg, includeForeldreansvar, includeFamilie } = options
+
   const dontContactStatuses = ['doed', 'ophoert']
-  const status = fregRes.status.find((ele) => ele.erGjeldende)?.status || 'Ukjent status'
+  const status = fregRes.status.find((ele) => ele.erGjeldende)?.status ?? 'Ukjent status'
   const kanKontaktes = !dontContactStatuses.includes(status)
+
   const navn = fregRes.navn.find((ele) => ele.erGjeldende)
-  const fornavn = navn.mellomnavn ? `${capitalizeWords(navn.fornavn)} ${capitalizeWords(navn.mellomnavn)}` : capitalizeWords(navn.fornavn)
+  if (!navn) {
+    throw new Error('Person does not have a valid name')
+  }
+  const fornavn = navn.mellomnavn
+    ? `${capitalizeWords(navn.fornavn)} ${capitalizeWords(navn.mellomnavn)}`
+    : capitalizeWords(navn.fornavn)
   const etternavn = capitalizeWords(navn.etternavn)
   const fulltnavn = `${fornavn} ${etternavn}`
 
@@ -144,21 +312,23 @@ module.exports = (fregRes, options = {}) => {
   }
 
   const foedselsdato = fregRes.foedsel.find((ele) => ele.erGjeldende)?.foedselsdato
-  const getAge = (birthDate) => Math.floor((Date.now() - new Date(birthDate).getTime()) / 3.15576e10)
-  const alder = getAge(foedselsdato)
+  const getAge = (birthDate: string): number => Math.floor((Date.now() - new Date(birthDate).getTime()) / 3.15576e10)
+  const alder = foedselsdato ? getAge(foedselsdato) : 0
   const doedsfall = fregRes.doedsfall?.erGjeldende ? fregRes.doedsfall : null
 
   const adressebeskyttelse = fregRes.adressebeskyttelse?.filter((ele) => ele.erGjeldende).map((ele) => ele.graderingsnivaa) ?? []
+
   const bostedsadresse = getAddress(fregRes.bostedsadresse?.find((ele) => ele.erGjeldende) ?? null, options)
   const deltbostedsadresse = getAddress(fregRes.deltBosted?.find((ele) => ele.erGjeldende) ?? null, options)
   const oppholdsadresse = getAddress(fregRes.oppholdsadresse?.find((ele) => ele.erGjeldende) ?? null, options)
   let postadresse = getAddress(fregRes.postadresse?.find((ele) => ele.erGjeldende) ?? null, options)
   const postadresseIUtlandet = getAddress(fregRes.postadresseIUtlandet?.find((ele) => ele.erGjeldende) ?? null, options)
+
   const foreldreansvar = fregRes.foreldreansvar?.filter((ele) => ele.erGjeldende) ?? []
   const familie = fregRes.familierelasjon?.filter((ele) => ele.erGjeldende) ?? []
 
-  // En person kan ha: bostedsadresse, oppholdsadresse, postadresse og postadresse i utlandet
-  // send videre postadresse, bostedsadresse og postadresse i utlandet
+  // En person kan ha: bostedsadresse, oppholdsadresse, postadresse og postadresse i utlandet.
+  // Bruk bostedsadresse (evt delt bosted, opphold, postadresse i utlandet) som fallback for postadresse.
   if (!postadresse) {
     postadresse = bostedsadresse
   }
@@ -172,10 +342,10 @@ module.exports = (fregRes, options = {}) => {
     postadresse = postadresseIUtlandet
   }
   if (!postadresse) {
-    postadresse = defaultPostAdresse
+    postadresse = { ...defaultPostAdresse }
   }
 
-  const repacked = {
+  const repacked: RepackedPerson = {
     foedselsEllerDNummer,
     status,
     kanKontaktes,
@@ -192,20 +362,16 @@ module.exports = (fregRes, options = {}) => {
     postadresse,
     postadresseIUtlandet
   }
+
   if (includeForeldreansvar) {
     repacked.foreldreansvar = foreldreansvar
   }
   if (includeFamilie) {
     repacked.familie = familie
   }
-
-  // bostedsadresse, postadresse (evt bosted om det ikke finnes), fornavn, etternavn og fullt navn, fødselsnummer, fødselsdato, alder, foreldre, verge, foreldreansvar
-  // adressesperre,
-  // pakke disse inn i et nytt objekt
   if (includeRawFreg) {
-    return { ...repacked, rawFreg: fregRes }
+    repacked.rawFreg = fregRes
   }
-  return { ...repacked }
-}
 
-module.exports.capitalizeWords = capitalizeWords
+  return repacked
+}

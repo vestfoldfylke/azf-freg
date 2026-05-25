@@ -1,60 +1,67 @@
-const { describe, it } = require('node:test')
-const assert = require('node:assert/strict')
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+import { describe, it } from 'node:test'
+import { fileURLToPath } from 'node:url'
 
-const repackFreg = require('../../lib/repackFreg')
-const { capitalizeWords } = require('../../lib/repackFreg')
+import { capitalizeWords, type FregPerson, repackFreg } from '../../lib/repackFreg.js'
 
-// What to test
-const personMedBostedsdresse = require('../data/testpersons/personMedBostedsadresse.json')
-const personMedPostdresseOgBostedsadresse = require('../data/testpersons/personMedPostadresseOgBostedsadresse.json')
-const personMedPostdresseFrittFormat = require('../data/testpersons/personMedPostadresseFrittFormat.json')
-const personMedAdressebeskyttelse = require('../data/testpersons/personMedAddressebeskyttelse.json') // denne har strengt fortrolig adresse
-const personMedFortroligbeskyttelse = require('../data/testpersons/personMedFortroligbeskyttelse.json')
-const personMedOppholdsadresseKlientadresse = require('../data/testpersons/personMedOppholdsadresseKlientadresse.json')
-const personMedUtenlandskAdresse = require('../data/testpersons/personMedUtenlandskadresse.json')
-const personMedForeldreansvar = require('../data/testpersons/personMedForeldreansvar.json')
+// JSON test fixtures live in the source tree; resolve from the compiled file location back to project root.
+// Compiled file: dist/tests/lib/repackFreg.test.js → project root is four dirs up.
+const testDataDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../tests/data/testpersons')
+const loadFixture = (filename: string): FregPerson =>
+  JSON.parse(readFileSync(path.join(testDataDir, filename), 'utf-8')) as FregPerson
+
+const personMedBostedsdresse = loadFixture('personMedBostedsadresse.json')
+const personMedPostdresseOgBostedsadresse = loadFixture('personMedPostadresseOgBostedsadresse.json')
+const personMedPostdresseFrittFormat = loadFixture('personMedPostadresseFrittFormat.json')
+const personMedAdressebeskyttelse = loadFixture('personMedAddressebeskyttelse.json') // strengt fortrolig
+const personMedFortroligbeskyttelse = loadFixture('personMedFortroligbeskyttelse.json')
+const personMedOppholdsadresseKlientadresse = loadFixture('personMedOppholdsadresseKlientadresse.json')
+const personMedUtenlandskAdresse = loadFixture('personMedUtenlandskadresse.json')
+const personMedForeldreansvar = loadFixture('personMedForeldreansvar.json')
 
 describe('Adresser blir repacked som forventet når', () => {
   it('Person har bostedadresse, og ikke postadresse', () => {
     const repacked = repackFreg(personMedBostedsdresse)
-    assert.strictEqual(repacked.bostedsadresse.gateadresse, 'Skipavika 88')
-    assert.strictEqual(repacked.bostedsadresse.poststed, 'NORDSTRØNO')
-    assert.strictEqual(repacked.bostedsadresse.postnummer, '5218')
-    assert.strictEqual(repacked.bostedsadresse.adressegradering, 'ugradert')
-    assert.strictEqual(repacked.postadresse.gateadresse, repacked.bostedsadresse.gateadresse)
-    assert.strictEqual(repacked.postadresse.poststed, repacked.bostedsadresse.poststed)
-    assert.strictEqual(repacked.postadresse.postnummer, repacked.bostedsadresse.postnummer)
+    assert.strictEqual(repacked.bostedsadresse?.gateadresse, 'Skipavika 88')
+    assert.strictEqual(repacked.bostedsadresse?.poststed, 'NORDSTRØNO')
+    assert.strictEqual(repacked.bostedsadresse?.postnummer, '5218')
+    assert.strictEqual(repacked.bostedsadresse?.adressegradering, 'ugradert')
+    assert.strictEqual(repacked.postadresse.gateadresse, repacked.bostedsadresse?.gateadresse)
+    assert.strictEqual(repacked.postadresse.poststed, repacked.bostedsadresse?.poststed)
+    assert.strictEqual(repacked.postadresse.postnummer, repacked.bostedsadresse?.postnummer)
   })
   it('Person har postadresse og bostedsadresse med husbokstav, og postadresse i utlandet', () => {
     const repacked = repackFreg(personMedPostdresseOgBostedsadresse)
-    assert.strictEqual(repacked.bostedsadresse.gateadresse, 'Skolegata 30B')
-    assert.strictEqual(repacked.bostedsadresse.poststed, 'STRØMMEN')
-    assert.strictEqual(repacked.bostedsadresse.postnummer, '2010')
-    assert.strictEqual(repacked.bostedsadresse.adressegradering, 'ugradert')
+    assert.strictEqual(repacked.bostedsadresse?.gateadresse, 'Skolegata 30B')
+    assert.strictEqual(repacked.bostedsadresse?.poststed, 'STRØMMEN')
+    assert.strictEqual(repacked.bostedsadresse?.postnummer, '2010')
+    assert.strictEqual(repacked.bostedsadresse?.adressegradering, 'ugradert')
     assert.strictEqual(repacked.postadresse.gateadresse, 'Skravlete Kabin, Test 221')
     assert.strictEqual(repacked.postadresse.poststed, 'TRANØY')
     assert.strictEqual(repacked.postadresse.postnummer, '8297')
     assert.strictEqual(repacked.postadresse.adressegradering, 'ugradert')
-    assert.strictEqual(repacked.postadresseIUtlandet.gateadresse, 'Testadresselinje 1, Testadresselinje 2')
-    assert.strictEqual(repacked.postadresseIUtlandet.poststed, 'Litt testby- eller stedsnavn')
-    assert.strictEqual(repacked.postadresseIUtlandet.postnummer, 'Testpostkode utland 55')
-    assert.strictEqual(repacked.postadresseIUtlandet.landkode, 'CV')
-    assert.strictEqual(repacked.postadresseIUtlandet.adressegradering, 'ugradert')
+    assert.strictEqual(repacked.postadresseIUtlandet?.gateadresse, 'Testadresselinje 1, Testadresselinje 2')
+    assert.strictEqual(repacked.postadresseIUtlandet?.poststed, 'Litt testby- eller stedsnavn')
+    assert.strictEqual(repacked.postadresseIUtlandet?.postnummer, 'Testpostkode utland 55')
+    assert.strictEqual(repacked.postadresseIUtlandet?.landkode, 'CV')
+    assert.strictEqual(repacked.postadresseIUtlandet?.adressegradering, 'ugradert')
   })
   it('Person har postadresse i fritt format', () => {
     const repacked = repackFreg(personMedPostdresseFrittFormat)
     assert.strictEqual(repacked.postadresse.gateadresse, 'POSTBOKS 146 BLEIE')
     assert.strictEqual(repacked.postadresse.poststed, 'GUGGENHEIM')
     assert.strictEqual(repacked.postadresse.postnummer, '3222')
-    assert.strictEqual(repacked.postadresseIUtlandet.adressegradering, 'ugradert')
+    assert.strictEqual(repacked.postadresseIUtlandet?.adressegradering, 'ugradert')
   })
   it('Person har utenlandsk adresse (ikke i fritt format)', () => {
     const repacked = repackFreg(personMedUtenlandskAdresse)
-    assert.strictEqual(repacked.postadresseIUtlandet.gateadresse, 'Erik Nilsson, Gatan 10')
-    assert.strictEqual(repacked.postadresseIUtlandet.poststed, 'Gothenburg, Västre Götaland')
-    assert.strictEqual(repacked.postadresseIUtlandet.postnummer, 'SE-412 50')
-    assert.strictEqual(repacked.postadresseIUtlandet.landkode, 'SE')
-    assert.strictEqual(repacked.postadresseIUtlandet.adressegradering, 'ugradert')
+    assert.strictEqual(repacked.postadresseIUtlandet?.gateadresse, 'Erik Nilsson, Gatan 10')
+    assert.strictEqual(repacked.postadresseIUtlandet?.poststed, 'Gothenburg, Västre Götaland')
+    assert.strictEqual(repacked.postadresseIUtlandet?.postnummer, 'SE-412 50')
+    assert.strictEqual(repacked.postadresseIUtlandet?.landkode, 'SE')
+    assert.strictEqual(repacked.postadresseIUtlandet?.adressegradering, 'ugradert')
   })
   it('Person har adressebeskyttelse strengtFortrolig', () => {
     const repacked = repackFreg(personMedAdressebeskyttelse)
@@ -66,10 +73,10 @@ describe('Adresser blir repacked som forventet når', () => {
   })
   it('Person har adressebeskyttelse fortrolig - uten option "includeFortrolig"', () => {
     const repacked = repackFreg(personMedFortroligbeskyttelse)
-    assert.strictEqual(repacked.bostedsadresse.gateadresse, 'Fortrolig adresse')
-    assert.strictEqual(repacked.bostedsadresse.poststed, 'UKJENT')
-    assert.strictEqual(repacked.bostedsadresse.postnummer, '9999')
-    assert.strictEqual(repacked.bostedsadresse.adressegradering, 'fortrolig')
+    assert.strictEqual(repacked.bostedsadresse?.gateadresse, 'Fortrolig adresse')
+    assert.strictEqual(repacked.bostedsadresse?.poststed, 'UKJENT')
+    assert.strictEqual(repacked.bostedsadresse?.postnummer, '9999')
+    assert.strictEqual(repacked.bostedsadresse?.adressegradering, 'fortrolig')
     assert.strictEqual(repacked.postadresse.gateadresse, 'Fortrolig adresse')
     assert.strictEqual(repacked.postadresse.poststed, 'UKJENT')
     assert.strictEqual(repacked.postadresse.postnummer, '9999')
@@ -77,10 +84,10 @@ describe('Adresser blir repacked som forventet når', () => {
   })
   it('Person har adressebeskyttelse fortrolig - med option "includeFortrolig"', () => {
     const repacked = repackFreg(personMedFortroligbeskyttelse, { includeFortrolig: true })
-    assert.strictEqual(repacked.bostedsadresse.gateadresse, 'Odlandsvegen 87')
-    assert.strictEqual(repacked.bostedsadresse.poststed, 'RØLDAL')
-    assert.strictEqual(repacked.bostedsadresse.postnummer, '5760')
-    assert.strictEqual(repacked.bostedsadresse.adressegradering, 'fortrolig')
+    assert.strictEqual(repacked.bostedsadresse?.gateadresse, 'Odlandsvegen 87')
+    assert.strictEqual(repacked.bostedsadresse?.poststed, 'RØLDAL')
+    assert.strictEqual(repacked.bostedsadresse?.postnummer, '5760')
+    assert.strictEqual(repacked.bostedsadresse?.adressegradering, 'fortrolig')
     assert.strictEqual(repacked.postadresse.gateadresse, 'Trist Balsam, Test 262')
     assert.strictEqual(repacked.postadresse.poststed, 'SÆTRE')
     assert.strictEqual(repacked.postadresse.postnummer, '3475')
@@ -88,10 +95,10 @@ describe('Adresser blir repacked som forventet når', () => {
   })
   it('Person har adressegradering KLIENTADRESSE - uten option "includeFortrolig"', () => {
     const repacked = repackFreg(personMedOppholdsadresseKlientadresse)
-    assert.strictEqual(repacked.oppholdsadresse.gateadresse, 'Klientadresse')
-    assert.strictEqual(repacked.oppholdsadresse.poststed, 'UKJENT')
-    assert.strictEqual(repacked.oppholdsadresse.postnummer, '9999')
-    assert.strictEqual(repacked.oppholdsadresse.adressegradering, 'KLIENTADRESSE')
+    assert.strictEqual(repacked.oppholdsadresse?.gateadresse, 'Klientadresse')
+    assert.strictEqual(repacked.oppholdsadresse?.poststed, 'UKJENT')
+    assert.strictEqual(repacked.oppholdsadresse?.postnummer, '9999')
+    assert.strictEqual(repacked.oppholdsadresse?.adressegradering, 'KLIENTADRESSE')
     assert.strictEqual(repacked.postadresse.gateadresse, 'Klientadresse')
     assert.strictEqual(repacked.postadresse.poststed, 'UKJENT')
     assert.strictEqual(repacked.postadresse.postnummer, '9999')
@@ -99,10 +106,10 @@ describe('Adresser blir repacked som forventet når', () => {
   })
   it('Person har adressegradering KLIENTADRESSE - med option "includeFortrolig" and husnummer is missing', () => {
     const repacked = repackFreg(personMedOppholdsadresseKlientadresse, { includeFortrolig: true })
-    assert.strictEqual(repacked.oppholdsadresse.gateadresse, 'Suppehuegata 82')
-    assert.strictEqual(repacked.oppholdsadresse.poststed, 'Plundre')
-    assert.strictEqual(repacked.oppholdsadresse.postnummer, '1664')
-    assert.strictEqual(repacked.oppholdsadresse.adressegradering, 'KLIENTADRESSE')
+    assert.strictEqual(repacked.oppholdsadresse?.gateadresse, 'Suppehuegata 82')
+    assert.strictEqual(repacked.oppholdsadresse?.poststed, 'Plundre')
+    assert.strictEqual(repacked.oppholdsadresse?.postnummer, '1664')
+    assert.strictEqual(repacked.oppholdsadresse?.adressegradering, 'KLIENTADRESSE')
     assert.strictEqual(repacked.postadresse.gateadresse, 'Suppehuegata 82')
     assert.strictEqual(repacked.postadresse.poststed, 'Plundre')
     assert.strictEqual(repacked.postadresse.postnummer, '1664')
@@ -133,7 +140,7 @@ describe('Navn, adressebeskyttelse, alder, foedselsdato, foedselsEllerDNummer bl
 describe('Foreldreansvar', () => {
   it('Blir hentet når includeForeldreansvar er true', () => {
     const repacked = repackFreg(personMedForeldreansvar, { includeForeldreansvar: true })
-    assert.strictEqual(repacked.foreldreansvar.length, 2)
+    assert.strictEqual(repacked.foreldreansvar?.length, 2)
   })
   it('Ikke blir med når includeForeldreansvar er false', () => {
     const repacked = repackFreg(personMedForeldreansvar)
@@ -141,7 +148,7 @@ describe('Foreldreansvar', () => {
   })
   it('Tom liste blir med når includeForeldreansvar er true og person ikke har noe foreldreansvar', () => {
     const repacked = repackFreg(personMedBostedsdresse, { includeForeldreansvar: true })
-    assert.strictEqual(repacked.foreldreansvar.length, 0)
+    assert.strictEqual(repacked.foreldreansvar?.length, 0)
   })
 })
 

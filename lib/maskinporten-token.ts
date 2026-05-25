@@ -1,7 +1,7 @@
 import { createPrivateKey, randomUUID, sign } from 'node:crypto'
 import { logger } from '@vestfoldfylke/loglady'
-import config from '../config.js'
-import { TtlCache } from './ttl-cache'
+import { config } from '../config.js'
+import { TtlCache } from './ttl-cache.js'
 
 interface MaskinportenTokenResponse {
   access_token: string
@@ -53,7 +53,7 @@ const getNewMaskinportenToken = async (): Promise<MaskinportenTokenResponse> => 
     throw new Error(`Failed to fetch discovery document, status: ${discoveryResponse.status}`)
   }
 
-  const discoveryData: MaskinportenDiscoveryData = await discoveryResponse.json()
+  const discoveryData = (await discoveryResponse.json()) as MaskinportenDiscoveryData
 
   const privateKeyPem: string = Buffer.from(config.maskinporten.privateKeyBase64, 'base64').toString('utf8')
   const keyObject = createPrivateKey(privateKeyPem)
@@ -102,7 +102,7 @@ const getNewMaskinportenToken = async (): Promise<MaskinportenTokenResponse> => 
     throw new Error(`Failed to fetch token, status: ${tokenResponse.status}`)
   }
 
-  return await tokenResponse.json()
+  return (await tokenResponse.json()) as MaskinportenTokenResponse
 }
 
 export const getMaskinportenToken = async (forceNew = false): Promise<string> => {
