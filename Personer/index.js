@@ -1,4 +1,4 @@
-const getAccessToken = require('../lib/getAccessToken')
+const getMaskinportenToken = require('../lib/maskinporten-token')
 const axios = require('axios')
 const repack = require('../lib/repackFreg')
 const decodeAccessToken = require('../lib/decodeAadToken')
@@ -31,7 +31,7 @@ module.exports = async (context, req) => {
 
   let accessToken
   try {
-    accessToken = await getAccessToken()
+    accessToken = await getMaskinportenToken()
   } catch (error) {
     logger('error', ['error when getting access token', error.toString()])
     return { status: 500, body: error.toString() }
