@@ -2,6 +2,7 @@ const { describe, it } = require('node:test')
 const assert = require('node:assert/strict')
 
 const repackFreg = require('../../lib/repackFreg')
+const { capitalizeWords } = require('../../lib/repackFreg')
 
 // What to test
 const personMedBostedsdresse = require('../data/testpersons/personMedBostedsadresse.json')
@@ -141,5 +142,22 @@ describe('Foreldreansvar', () => {
   it('Tom liste blir med når includeForeldreansvar er true og person ikke har noe foreldreansvar', () => {
     const repacked = repackFreg(personMedBostedsdresse, { includeForeldreansvar: true })
     assert.strictEqual(repacked.foreldreansvar.length, 0)
+  })
+})
+
+describe('capitalizeWords', () => {
+  it('Kapitaliserer hvert ord', () => {
+    assert.strictEqual(capitalizeWords('OLE NORDMANN'), 'Ole Nordmann')
+  })
+  it('Normaliserer input med blandet store og små bokstaver', () => {
+    assert.strictEqual(capitalizeWords('oLe NoRdMaNn'), 'Ole Nordmann')
+  })
+  it('Beholder skipwords (og, av, i, von, fra, de) som lowercase midt i navnet', () => {
+    assert.strictEqual(capitalizeWords('LUDWIG VON BEETHOVEN'), 'Ludwig von Beethoven')
+    assert.strictEqual(capitalizeWords('ANNE av GRØNN'), 'Anne av Grønn')
+    assert.strictEqual(capitalizeWords('JAN de VRIES'), 'Jan de Vries')
+  })
+  it('Kapitaliserer skipword som er første ord i strengen', () => {
+    assert.strictEqual(capitalizeWords('von trapp'), 'Von Trapp')
   })
 })
