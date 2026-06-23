@@ -30,7 +30,7 @@ export const handler = async (_context: unknown, req: AzureHttpRequest): Promise
   if (!decoded.verified) {
     return { status: 401, body: decoded.msg }
   }
-  if (!decoded.roles.includes(config.apiRole)) {
+  if (!decoded.roles.includes(config.API_ROLE)) {
     return { status: 401, body: 'Access token does not include required role for this operation' }
   }
 
@@ -72,7 +72,7 @@ export const handler = async (_context: unknown, req: AzureHttpRequest): Promise
     if (typeof ssn !== 'string' || ssn.length !== 11) {
       return { status: 400, body: 'Property "ssn" must be a string of length 11' }
     }
-    url = `${config.freg.url}/${config.freg.rettighet}/api/v1/personer/${ssn}?${defaultParts}`
+    url = `${config.FREG.URL}/${config.FREG.RETTIGHET}/api/v1/personer/${ssn}?${defaultParts}`
   } else if (name && birthdate) {
     if (typeof name !== 'string') {
       return { status: 400, body: 'Property "name" must be string' }
@@ -80,7 +80,7 @@ export const handler = async (_context: unknown, req: AzureHttpRequest): Promise
     if (typeof birthdate !== 'string' || birthdate.length !== 8) {
       return { status: 400, body: 'Property "birthdate" must be format "YYYYMMDD"' }
     }
-    url = `${config.freg.url}/${config.freg.rettighet}/api/v1/personer/entydigsoek?foedselsdato=${birthdate}&navn=${encodeURIComponent(name)}&${defaultParts}`
+    url = `${config.FREG.URL}/${config.FREG.RETTIGHET}/api/v1/personer/entydigsoek?foedselsdato=${birthdate}&navn=${encodeURIComponent(name)}&${defaultParts}`
   } else {
     throw new Error('Huh, dette skal ikke være mulig...')
   }
