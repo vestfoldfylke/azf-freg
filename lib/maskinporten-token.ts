@@ -1,10 +1,10 @@
+import { randomUUID } from 'node:crypto'
 import { logger } from '@vestfoldfylke/loglady'
-import { config } from '../config.js'
-import { TtlCache } from './ttl-cache.js'
+import { importPKCS8, SignJWT } from 'jose'
 import * as client from 'openid-client'
 import { ResponseBodyError } from 'openid-client'
-import { importPKCS8, SignJWT } from 'jose'
-import { randomUUID } from "node:crypto"
+import { config } from '../config.js'
+import { TtlCache } from './ttl-cache.js'
 
 type MaskinportenTokenResponse = {
   access_token: string
@@ -62,8 +62,12 @@ const getNewMaskinportenToken = async (): Promise<MaskinportenTokenResponse> => 
     })
   } catch (error) {
     if (error instanceof ResponseBodyError) {
-      logger.error('Error response from Maskinporten token endpoint: {@cause} - {@description}', error.cause, error.error_description || "No error description provided")
-      throw new Error(`Error fetching token from Maskinporten: ${error.error_description || "No error description provided"}`, { cause: error })
+      logger.error(
+        'Error response from Maskinporten token endpoint: {@cause} - {@description}',
+        error.cause,
+        error.error_description || 'No error description provided'
+      )
+      throw new Error(`Error fetching token from Maskinporten: ${error.error_description || 'No error description provided'}`, { cause: error })
     }
     logger.errorException(error, 'Unexpected error while fetching token from Maskinporten')
     throw new Error(`Error fetching token from Maskinporten: ${error instanceof Error ? error.message : String(error)}`, { cause: error })

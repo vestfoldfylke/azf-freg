@@ -300,9 +300,7 @@ export const repackFreg = (fregRes: FregPerson, options: RepackOptions = {}): Re
   if (!navn) {
     throw new Error('Person does not have a valid name')
   }
-  const fornavn = navn.mellomnavn
-    ? `${capitalizeWords(navn.fornavn)} ${capitalizeWords(navn.mellomnavn)}`
-    : capitalizeWords(navn.fornavn)
+  const fornavn = navn.mellomnavn ? `${capitalizeWords(navn.fornavn)} ${capitalizeWords(navn.mellomnavn)}` : capitalizeWords(navn.fornavn)
   const etternavn = capitalizeWords(navn.etternavn)
   const fulltnavn = `${fornavn} ${etternavn}`
 

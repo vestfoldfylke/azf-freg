@@ -9,8 +9,7 @@ import { capitalizeWords, type FregPerson, repackFreg } from '../../lib/repackFr
 // JSON test fixtures live in the source tree; resolve from the compiled file location back to project root.
 // Compiled file: dist/tests/lib/repackFreg.test.js → project root is four dirs up.
 const testDataDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../tests/data/testpersons')
-const loadFixture = (filename: string): FregPerson =>
-  JSON.parse(readFileSync(path.join(testDataDir, filename), 'utf-8')) as FregPerson
+const loadFixture = (filename: string): FregPerson => JSON.parse(readFileSync(path.join(testDataDir, filename), 'utf-8')) as FregPerson
 
 const personMedBostedsdresse = loadFixture('personMedBostedsadresse.json')
 const personMedPostdresseOgBostedsadresse = loadFixture('personMedPostadresseOgBostedsadresse.json')
