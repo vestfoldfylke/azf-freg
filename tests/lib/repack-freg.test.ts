@@ -4,10 +4,9 @@ import path from 'node:path'
 import { describe, it } from 'node:test'
 import { fileURLToPath } from 'node:url'
 
-import { capitalizeWords, type FregPerson, repackFreg } from '../../lib/repackFreg.js'
+import { capitalizeWords, type FregPerson, repackFreg } from '../../src/lib/repack-freg.js'
 
-// JSON test fixtures live in the source tree; resolve from the compiled file location back to project root.
-// Compiled file: dist/tests/lib/repackFreg.test.js → project root is four dirs up.
+// Resolve fixtures from the compiled file (dist-test/tests/lib/) back to the source tests/data/.
 const testDataDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../tests/data/testpersons')
 const loadFixture = (filename: string): FregPerson => JSON.parse(readFileSync(path.join(testDataDir, filename), 'utf-8')) as FregPerson
 

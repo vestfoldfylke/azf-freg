@@ -1,32 +1,24 @@
+import { app, type HttpRequest, type HttpResponseInit, type InvocationContext } from '@azure/functions'
 import { logger } from '@vestfoldfylke/loglady'
 import { config } from '../config.js'
-import { decodeAadToken } from '../lib/decodeAadToken.js'
+import { decodeAadToken } from '../lib/decode-bearer-token.js'
 import { getMaskinportenToken } from '../lib/maskinporten-token.js'
-import { type FregPerson, repackFreg } from '../lib/repackFreg.js'
+import { type FregPerson, repackFreg } from '../lib/repack-freg.js'
 
-// Minimal Azure Functions v3/v4 typings (legacy programming model with function.json)
-interface AzureHttpRequest {
-  headers: Record<string, string | undefined>
-  body?: {
-    ssn?: unknown
-    name?: unknown
-    birthdate?: unknown
-    includeRawFreg?: unknown
-    includeFortrolig?: unknown
-    includeForeldreansvar?: unknown
-    includeFamilie?: unknown
-  }
+interface PersonerRequestBody {
+  ssn?: unknown
+  name?: unknown
+  birthdate?: unknown
+  includeRawFreg?: unknown
+  includeFortrolig?: unknown
+  includeForeldreansvar?: unknown
+  includeFamilie?: unknown
 }
 
-interface AzureHttpResponse {
-  status: number
-  body: unknown
-}
-
-export const handler = async (_context: unknown, req: AzureHttpRequest): Promise<AzureHttpResponse> => {
+export const handler = async (request: HttpRequest, _context: InvocationContext): Promise<HttpResponseInit> => {
   logger.info('azf-freg - Personer - new request, checking token')
 
-  const decoded = decodeAadToken(req.headers.authorization)
+  const decoded = decodeAadToken(request.headers.get('authorization') ?? undefined)
   if (!decoded.verified) {
     return { status: 401, body: decoded.msg }
   }
@@ -48,11 +40,17 @@ export const handler = async (_context: unknown, req: AzureHttpRequest): Promise
     return { status: 500, body: String(error) }
   }
 
-  if (!req.body) {
+  let body: PersonerRequestBody | null = null
+  try {
+    body = (await request.json()) as PersonerRequestBody | null
+  } catch {
+    return { status: 400, body: 'Body is missing or not valid JSON' }
+  }
+  if (!body) {
     return { status: 400, body: 'Body is missing' }
   }
 
-  const { ssn, name, birthdate, includeRawFreg, includeFortrolig, includeForeldreansvar, includeFamilie } = req.body
+  const { ssn, name, birthdate, includeRawFreg, includeFortrolig, includeForeldreansvar, includeFamilie } = body
 
   if (!ssn && !(name && birthdate)) {
     return { status: 400, body: 'Body is missing required property "ssn" or "name" and "birthdate"' }
@@ -96,7 +94,10 @@ export const handler = async (_context: unknown, req: AzureHttpRequest): Promise
     })
 
     if (response.status === 404) {
-      return { status: 200, body: { foedselsEllerDNummer: null, status: 'fant ingen med denne identifikasjonen' } }
+      return {
+        status: 200,
+        jsonBody: { foedselsEllerDNummer: null, status: 'fant ingen med denne identifikasjonen' }
+      }
     }
 
     if (!response.ok) {
@@ -113,7 +114,7 @@ export const handler = async (_context: unknown, req: AzureHttpRequest): Promise
     logger.info('azf-freg - Personer - {Caller} - got data, repacking result', { Caller: caller })
     const repacked = repackFreg(data, options)
     logger.info('azf-freg - Personer - {Caller} - successfully repacked result', { Caller: caller })
-    return { status: 200, body: repacked }
+    return { status: 200, jsonBody: repacked }
   } catch (error) {
     logger.error('azf-freg - Personer - {Caller} - error calling FREG: {Error}', {
       Caller: caller,
@@ -122,3 +123,9 @@ export const handler = async (_context: unknown, req: AzureHttpRequest): Promise
     return { status: 500, body: String(error) }
   }
 }
+
+app.http('Personer', {
+  methods: ['POST'],
+  authLevel: 'anonymous',
+  handler
+})
