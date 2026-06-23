@@ -2,10 +2,11 @@
   "name": "azf-freg",
   "version": "2.1.0",
   "type": "module",
+  "main": "dist/functions/*.js",
   "description": "Azure function for calling FREG",
   "scripts": {
     "build": "tsc",
-    "test": "npm run build && node --test 'dist/tests/**/*.test.js'",
+    "test": "tsc -p tsconfig.test.json && node --test 'dist-test/tests/**/*.test.js'",
     "start": "npm run build && func start",
     "lint": "npx @biomejs/biome check",
     "lint:fix": "npx @biomejs/biome check --write",
@@ -15,10 +16,11 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.15",
-    "@types/node": "^25.9.1",
+    "@types/node": "^25.9.3",
     "typescript": "^5.8.3"
   },
   "dependencies": {
+    "@azure/functions": "^4.16.0",
     "@vestfoldfylke/loglady": "^1.5.3",
     "jose": "^6.2.3",
     "openid-client": "^6.8.4"

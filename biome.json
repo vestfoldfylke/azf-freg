@@ -60,11 +60,14 @@
       }
     },
     {
-      "includes": ["dist/**"],
+      "includes": ["dist/**", "dist-test/**"],
       "linter": {
         "enabled": false
       },
       "formatter": {
+        "enabled": false
+      },
+      "assist": {
         "enabled": false
       }
     }

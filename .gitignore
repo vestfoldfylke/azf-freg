@@ -114,3 +114,6 @@ local.settings.json
 
 # Mac
 .DS_Store
+
+# dist-test output
+dist-test
