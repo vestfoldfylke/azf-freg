@@ -18,6 +18,9 @@ export interface DecodeResult {
 
 const decodeJwt = (token: string): RawJwtPayload => {
   const base64Payload = token.replace('Bearer ', '').split('.')[1]
+  if (!base64Payload) {
+    throw new Error('Token is not a valid jwt')
+  }
   const payload = Buffer.from(base64Payload, 'base64url').toString()
   return JSON.parse(payload) as RawJwtPayload
 }

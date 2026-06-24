@@ -2,18 +2,16 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, it } from 'node:test'
-import { fileURLToPath } from 'node:url'
 
-import { capitalizeWords, type FregPerson, repackFreg } from '../../src/lib/repack-freg.js'
+import { capitalizeWords, type FregPerson, repackFreg } from './repack-freg.ts'
 
-// Resolve fixtures from the compiled file (dist-test/tests/lib/) back to the source tests/data/.
-const testDataDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../tests/data/testpersons')
-const loadFixture = (filename: string): FregPerson => JSON.parse(readFileSync(path.join(testDataDir, filename), 'utf-8')) as FregPerson
+const loadFixture = (filename: string): FregPerson =>
+  JSON.parse(readFileSync(path.join(import.meta.dirname, '__fixtures__', filename), 'utf-8')) as FregPerson
 
 const personMedBostedsdresse = loadFixture('personMedBostedsadresse.json')
 const personMedPostdresseOgBostedsadresse = loadFixture('personMedPostadresseOgBostedsadresse.json')
 const personMedPostdresseFrittFormat = loadFixture('personMedPostadresseFrittFormat.json')
-const personMedAdressebeskyttelse = loadFixture('personMedAddressebeskyttelse.json') // strengt fortrolig
+const personMedAdressebeskyttelse = loadFixture('personMedAddressebeskyttelse.json')
 const personMedFortroligbeskyttelse = loadFixture('personMedFortroligbeskyttelse.json')
 const personMedOppholdsadresseKlientadresse = loadFixture('personMedOppholdsadresseKlientadresse.json')
 const personMedUtenlandskAdresse = loadFixture('personMedUtenlandskadresse.json')

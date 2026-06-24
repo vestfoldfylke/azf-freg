@@ -4,15 +4,14 @@
     "module": "Node16",
     "moduleResolution": "Node16",
     "lib": ["ES2022"],
-    "outDir": "./dist",
-    "rootDir": "./src",
     "strict": true,
     "skipLibCheck": true,
-    "declaration": true,
     "sourceMap": true,
-    "resolveJsonModule": true,
-    "types": ["node"]
+    "types": ["node"],
+    "noEmit": true,
+    "noUncheckedIndexedAccess": true,
+    "allowImportingTsExtensions": true
   },
   "include": ["./src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "dist-test"]
+  "exclude": ["node_modules", "dist"]
 }

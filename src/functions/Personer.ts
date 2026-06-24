@@ -3,7 +3,7 @@ import { logger } from '@vestfoldfylke/loglady'
 import { config } from '../config.js'
 import { decodeAadToken } from '../lib/decode-bearer-token.js'
 import { getMaskinportenToken } from '../lib/maskinporten-token.js'
-import { type FregPerson, repackFreg } from '../lib/repack-freg.js'
+import { type FregPerson, repackFreg } from '../lib/repack/repack-freg.js'
 
 interface PersonerRequestBody {
   ssn?: unknown

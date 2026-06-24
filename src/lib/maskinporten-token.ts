@@ -11,7 +11,7 @@ type MaskinportenTokenResponse = {
   expires_in: number
 }
 
-const cache = new TtlCache()
+const cache = new TtlCache<string>()
 
 let maskinportenClientConfig: client.Configuration | null = null
 let privateKey: CryptoKey | null = null
@@ -86,7 +86,7 @@ const getNewMaskinportenToken = async (): Promise<MaskinportenTokenResponse> => 
 export const getMaskinportenToken = async (): Promise<string> => {
   const cacheKey = 'maskinportenTokenKrr'
 
-  const cached = cache.get<string>(cacheKey)
+  const cached = cache.get(cacheKey)
 
   if (cached) {
     logger.info('getMaskinportenToken - Found valid token in cache, will use that instead of fetching new')

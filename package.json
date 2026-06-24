@@ -5,8 +5,9 @@
   "main": "dist/functions/*.js",
   "description": "Azure function for calling FREG",
   "scripts": {
-    "build": "tsc",
-    "test": "tsc -p tsconfig.test.json && node --test 'dist-test/tests/**/*.test.js'",
+    "build": "tsc -p tsconfig.build.json",
+    "test:node": "tsc && node --test --experimental-strip-types 'src/**/*.test.ts'",
+    "test": "npm run lint && npm run test:node",
     "start": "npm run build && func start",
     "lint": "npx @biomejs/biome check",
     "lint:fix": "npx @biomejs/biome check --write",
