@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { describe, it } from 'node:test'
+import { after, before, describe, it, mock } from 'node:test'
 
-import { capitalizeWords, type FregPerson, repackFreg } from './repack-freg.ts'
+import { capitalizeWords, type FregPerson, getAge, repackFreg } from './repack-freg.ts'
 
 const loadFixture = (filename: string): FregPerson =>
   JSON.parse(readFileSync(path.join(import.meta.dirname, '__fixtures__', filename), 'utf-8')) as FregPerson
@@ -145,6 +145,37 @@ describe('Foreldreansvar', () => {
   it('Tom liste blir med når includeForeldreansvar er true og person ikke har noe foreldreansvar', () => {
     const repacked = repackFreg(personMedBostedsdresse, { includeForeldreansvar: true })
     assert.strictEqual(repacked.foreldreansvar?.length, 0)
+  })
+})
+
+describe('getAge', () => {
+  before(() => {
+    mock.timers.enable({ apis: ['Date'], now: new Date('2026-06-30T12:00:00Z') })
+  })
+  after(() => {
+    mock.timers.reset()
+  })
+
+  it('Returnerer riktig alder når bursdag er passert i år', () => {
+    assert.strictEqual(getAge('1990-01-15'), 36)
+  })
+  it('Returnerer riktig alder når bursdag ikke er passert i år', () => {
+    assert.strictEqual(getAge('1990-12-15'), 35)
+  })
+  it('Returnerer riktig alder på selve bursdagen', () => {
+    assert.strictEqual(getAge('1990-06-30'), 36)
+  })
+  it('Returnerer riktig alder dagen før bursdag', () => {
+    assert.strictEqual(getAge('1990-07-01'), 35)
+  })
+  it('Returnerer riktig alder dagen etter bursdag', () => {
+    assert.strictEqual(getAge('1990-06-29'), 36)
+  })
+  it('Returnerer 0 for nyfødt', () => {
+    assert.strictEqual(getAge('2026-06-30'), 0)
+  })
+  it('Håndterer skuddårsbursdag (29. februar) i ikke-skuddår — alder økes 1. mars', () => {
+    assert.strictEqual(getAge('2000-02-29'), 26)
   })
 })
 

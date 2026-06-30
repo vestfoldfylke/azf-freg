@@ -287,6 +287,13 @@ const getAddress = (address: FregAddressEntry | null, options: RepackOptions = {
   return usefulAddress
 }
 
+export const getAge = (birthDate: string): number => {
+  const birth = new Date(birthDate)
+  const now = new Date()
+  const hasHadBirthdayThisYear = now.getMonth() > birth.getMonth() || (now.getMonth() === birth.getMonth() && now.getDate() >= birth.getDate())
+  return now.getFullYear() - birth.getFullYear() - (hasHadBirthdayThisYear ? 0 : 1)
+}
+
 // ── Main export ──────────────────────────────────────────────────────────────
 
 export const repackFreg = (fregRes: FregPerson, options: RepackOptions = {}): RepackedPerson => {
@@ -310,7 +317,6 @@ export const repackFreg = (fregRes: FregPerson, options: RepackOptions = {}): Re
   }
 
   const foedselsdato = fregRes.foedsel.find((ele) => ele.erGjeldende)?.foedselsdato
-  const getAge = (birthDate: string): number => Math.floor((Date.now() - new Date(birthDate).getTime()) / 3.15576e10)
   const alder = foedselsdato ? getAge(foedselsdato) : 0
   const doedsfall = fregRes.doedsfall?.erGjeldende ? fregRes.doedsfall : null
 
