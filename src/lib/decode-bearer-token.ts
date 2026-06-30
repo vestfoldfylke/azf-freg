@@ -39,15 +39,11 @@ export const decodeAadToken = (token: string): DecodeResult => {
     return { ok: false, reason: 'Token is missing upn or appId' }
   }
 
-  if (!roles || !Array.isArray(roles) || roles.length === 0 || !roles.every((role) => typeof role === 'string')) {
-    return { ok: false, reason: 'Token is missing roles or roles is not an array of strings' }
-  }
-
   return {
     ok: true,
     appid: appid ?? '',
     upn: upn ?? null,
     oid: oid ?? '',
-    roles: roles ?? []
+    roles: Array.isArray(roles) ? roles : []
   }
 }
