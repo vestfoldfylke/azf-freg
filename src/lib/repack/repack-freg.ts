@@ -164,7 +164,7 @@ export type RepackedPerson = {
   etternavn: string
   fulltnavn: string
   foedselsdato: string | undefined
-  alder: number
+  alder: number | null
   doedsfall: FregDoedsfall | null
   adressebeskyttelse: string[]
   bostedsadresse: Address | null
@@ -317,7 +317,7 @@ export const repackFreg = (fregRes: FregPerson, options: RepackOptions = {}): Re
   }
 
   const foedselsdato = fregRes.foedsel.find((ele) => ele.erGjeldende)?.foedselsdato
-  const alder = foedselsdato ? getAge(foedselsdato) : 0
+  const alder = foedselsdato ? getAge(foedselsdato) : null
   const doedsfall = fregRes.doedsfall?.erGjeldende ? fregRes.doedsfall : null
 
   const adressebeskyttelse = fregRes.adressebeskyttelse?.filter((ele) => ele.erGjeldende).map((ele) => ele.graderingsnivaa) ?? []
