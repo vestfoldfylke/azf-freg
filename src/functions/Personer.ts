@@ -77,9 +77,25 @@ export const handler = async (request: HttpRequest, context: InvocationContext):
     body: `Internal error in ${source}. Reference id: ${correlationId}`
   })
 
+  if (!config.FREG.URL || !config.FREG.RETTIGHET) {
+    logger.error('azf-freg - Personer - FREG_URL or FREG_RETTIGHET is not set in environment')
+    return internalError('FREG_URL or FREG_RETTIGHET is not set in environment')
+  }
+
+  if (!config.API_ROLE) {
+    logger.error('azf-freg - Personer - API_ROLE is not set in environment')
+    return internalError('API_ROLE is not set in environment')
+  }
+
   logger.info('azf-freg - Personer - new request, checking token')
 
-  const decoded = decodeAadToken(request.headers.get('authorization') ?? undefined)
+  const authorizationHeader = request.headers.get('authorization')
+  
+  if (!authorizationHeader) {
+    return { status: 401, body: 'Missing authorization header' }
+  }
+
+  const decoded = decodeAadToken(authorizationHeader)
 
   if (!decoded.ok) {
     return { status: 401, body: decoded.reason }
@@ -118,11 +134,6 @@ export const handler = async (request: HttpRequest, context: InvocationContext):
   const parsed = parsePersonerRequest(body)
   if (!parsed.ok) {
     return { status: 400, body: parsed.error }
-  }
-
-  if (!config.FREG.URL || !config.FREG.RETTIGHET) {
-    logger.error('azf-freg - Personer - {Caller} - FREG_URL or FREG_RETTIGHET is not set in environment', caller)
-    return internalError('FREG_URL or FREG_RETTIGHET is not set in environment')
   }
 
   const url = buildPersonerUrl(parsed.query)

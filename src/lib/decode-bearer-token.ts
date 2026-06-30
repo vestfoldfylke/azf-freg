@@ -22,11 +22,7 @@ const decodeJwt = (token: string): RawJwtPayload => {
   return JSON.parse(payload) as RawJwtPayload
 }
 
-export const decodeAadToken = (token: string | undefined): DecodeResult => {
-  if (!token) {
-    return { ok: false, reason: 'Missing token in authorization header' }
-  }
-
+export const decodeAadToken = (token: string): DecodeResult => {
   let decoded: RawJwtPayload
   try {
     decoded = decodeJwt(token)
