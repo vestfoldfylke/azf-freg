@@ -299,7 +299,7 @@ export const getAge = (birthDate: string): number => {
 export const repackFreg = (fregRes: FregPerson, options: RepackOptions = {}): RepackedPerson => {
   const { includeRawFreg, includeForeldreansvar, includeFamilie } = options
 
-  const dontContactStatuses = ['doed', 'ophoert']
+  const dontContactStatuses = ['doed', 'opphoert']
   const status = fregRes.status.find((ele) => ele.erGjeldende)?.status ?? 'Ukjent status'
   const kanKontaktes = !dontContactStatuses.includes(status)
 
