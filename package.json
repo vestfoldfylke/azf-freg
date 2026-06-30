@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@azure/functions": "^4.16.0",
-    "@vestfoldfylke/loglady": "^1.5.3",
+    "@vestfoldfylke/loglady": "^2.1.0",
     "jose": "^6.2.3",
     "openid-client": "^6.8.4"
   }
