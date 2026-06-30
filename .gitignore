@@ -104,6 +104,7 @@ dist
 .tern-port
 
 # Certificates
+cert/
 *.pfx
 *.pem
 *.key

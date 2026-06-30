@@ -12,8 +12,7 @@
     "lint": "npx @biomejs/biome check",
     "lint:fix": "npx @biomejs/biome check --write",
     "lint:fix:unsafe": "npx @biomejs/biome check --write --unsafe",
-    "refresh": "rm -rf node_modules/ && rm package-lock.json && npm i",
-    "dev": "npm run build && func start"
+    "encode-private-key": "node dev/encode-private-key-pem.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.15",
