@@ -7,6 +7,9 @@ export class TtlCache<T> {
   private readonly store = new Map<string, CacheEntry<T>>()
 
   set(key: string, value: T, ttlSeconds: number): void {
+    if (!ttlSeconds || ttlSeconds <= 0) {
+      throw new Error('TTL must be greater than 0')
+    }
     this.store.set(key, { value, expiresAt: Date.now() + ttlSeconds * 1000 })
   }
 
