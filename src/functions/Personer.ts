@@ -82,11 +82,6 @@ export const handler = async (request: HttpRequest, context: InvocationContext):
     return internalError('FREG_URL or FREG_RETTIGHET is not set in environment')
   }
 
-  if (!config.API_ROLE) {
-    logger.error('azf-freg - Personer - API_ROLE is not set in environment')
-    return internalError('API_ROLE is not set in environment')
-  }
-
   logger.info('azf-freg - Personer - new request, checking token')
 
   const authorizationHeader = request.headers.get('authorization')
