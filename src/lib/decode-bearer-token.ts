@@ -11,14 +11,9 @@ type RawJwtPayload = {
   roles?: string[]
 }
 
-export type DecodeResult = {
-  upn: string | undefined
-  appid: string
-  oid: string
-  verified: boolean
-  msg: string
-  roles: string[]
-}
+export type DecodeResult =
+  | { ok: true; appid: string; upn: string | null; oid: string; roles: string[] }
+  | { ok: false; reason: string }
 
 const decodeJwt = (token: string): RawJwtPayload => {
   const base64Payload = token.replace('Bearer ', '').split('.')[1]
@@ -30,44 +25,31 @@ const decodeJwt = (token: string): RawJwtPayload => {
 }
 
 export const decodeAadToken = (token: string | undefined): DecodeResult => {
-  const result: DecodeResult = {
-    upn: undefined,
-    appid: '',
-    oid: '',
-    verified: false,
-    msg: '',
-    roles: []
-  }
-
   if (!token) {
-    result.msg = 'Missing token in authorization header'
-    return result
+    return { ok: false, reason: 'Missing token in authorization header' }
   }
 
   let decoded: RawJwtPayload
   try {
     decoded = decodeJwt(token)
-  } catch (_error) {
-    result.msg = 'Token is not a valid jwt'
-    return result
+  } catch {
+    return { ok: false, reason: 'Token is not a valid jwt' }
   }
 
   if (!decoded) {
-    result.msg = 'Token is not a valid jwt'
-    return result
+    return { ok: false, reason: 'Token is not a valid jwt' }
   }
 
   const { upn, appid, roles, oid } = decoded
   if (!upn && !appid) {
-    result.msg = 'Token is missing upn or appId'
-    return result
+    return { ok: false, reason: 'Token is missing upn or appId' }
   }
 
-  result.appid = appid ?? ''
-  result.upn = upn
-  result.oid = oid ?? ''
-  result.verified = true
-  result.roles = roles ?? []
-
-  return result
+  return {
+    ok: true,
+    appid: appid ?? '',
+    upn: upn ?? null,
+    oid: oid ?? '',
+    roles: roles ?? []
+  }
 }

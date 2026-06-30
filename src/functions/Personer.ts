@@ -88,9 +88,9 @@ export const handler = async (request: HttpRequest, context: InvocationContext):
   logger.info('azf-freg - Personer - new request, checking token')
 
   const decoded = decodeAadToken(request.headers.get('authorization') ?? undefined)
-  
-  if (!decoded.verified) {
-    return { status: 401, body: decoded.msg }
+
+  if (!decoded.ok) {
+    return { status: 401, body: decoded.reason }
   }
 
   if (!decoded.roles.includes(config.API_ROLE)) {
