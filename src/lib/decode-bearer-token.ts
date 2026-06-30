@@ -1,4 +1,8 @@
-// We only decode, as built-in Entra auth verifies. Decode only for metadata — not authentication.
+// SECURITY: This function does NOT verify the JWT signature.
+// It relies on Azure Easy Auth (App Service Authentication v2) being enforced
+// in front of every caller. Enforcement is asserted in Terraform via
+// auth_settings_v2 { require_authentication = true, unauthenticated_action = "Return401" }.
+// Do not call decodeAadToken from any handler that is not behind Easy Auth.
 
 type RawJwtPayload = {
   upn?: string
@@ -8,7 +12,7 @@ type RawJwtPayload = {
 }
 
 export type DecodeResult = {
-  upn: string
+  upn: string | undefined
   appid: string
   oid: string
   verified: boolean
@@ -27,7 +31,7 @@ const decodeJwt = (token: string): RawJwtPayload => {
 
 export const decodeAadToken = (token: string | undefined): DecodeResult => {
   const result: DecodeResult = {
-    upn: '',
+    upn: undefined,
     appid: '',
     oid: '',
     verified: false,
@@ -60,7 +64,7 @@ export const decodeAadToken = (token: string | undefined): DecodeResult => {
   }
 
   result.appid = appid ?? ''
-  result.upn = upn ?? 'appReg'
+  result.upn = upn
   result.oid = oid ?? ''
   result.verified = true
   result.roles = roles ?? []
