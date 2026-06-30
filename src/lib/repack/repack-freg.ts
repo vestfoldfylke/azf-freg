@@ -1,25 +1,16 @@
+// ── Constants ────────────────────────────────────────────────────────────────
+
 const addressDelimiter = ', '
 
 const skipWords = /^(i|og|von|av|fra|de)$/
 
-const capitalizeWord = (word: string): string => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+const dontContactStatuses = ['doed', 'opphoert']
 
-export const capitalizeWords = (data: string): string =>
-  data
-    .split(' ')
-    .map((word, index) => {
-      const isSkipWord = index > 0 && skipWords.test(word.toLowerCase())
-      return isSkipWord ? word.toLowerCase() : capitalizeWord(word)
-    })
-    .join(' ')
-
-const trimAddress = (address: string): string => {
-  const delimiterLength = addressDelimiter.length
-  const lastChars = address.substring(address.length - delimiterLength, address.length + 1)
-  if (lastChars === addressDelimiter) {
-    return address.substring(0, address.length - delimiterLength)
-  }
-  return address
+// Adressegradering values that hide the underlying address unless includeFortrolig is set.
+const protectedGraderingLabels: Record<string, string> = {
+  fortrolig: 'Fortrolig adresse',
+  strengtfortrolig: 'Strengt fortrolig adresse',
+  klientadresse: 'Klientadresse'
 }
 
 // ── FREG API response types ──────────────────────────────────────────────────
@@ -141,6 +132,8 @@ export type FregPerson = {
   familierelasjon?: FregRelasjon[]
 }
 
+// ── Public output types ──────────────────────────────────────────────────────
+
 export type RepackOptions = {
   includeRawFreg?: boolean
   includeFortrolig?: boolean
@@ -177,115 +170,42 @@ export type RepackedPerson = {
   rawFreg?: FregPerson
 }
 
-// ── Address helpers ──────────────────────────────────────────────────────────
+// ── Defaults ─────────────────────────────────────────────────────────────────
 
-const defaultPostAdresse: Address = {
-  adressegradering: 'ugradert',
+type AddressDetails = Omit<Address, 'adressegradering'>
+
+const defaultAddressDetails: AddressDetails = {
   gateadresse: 'Ukjent adresse',
   postnummer: '9999',
   poststed: 'UKJENT',
   landkode: 'NO'
 }
 
-const getAddress = (address: FregAddressEntry | null, options: RepackOptions = {}): Address | null => {
-  const { includeFortrolig } = options
-  if (!address) {
-    return null
-  }
-
-  const usefulAddress: Address = {
-    ...defaultPostAdresse,
-    adressegradering: address.adressegradering
-  }
-
-  if (usefulAddress.adressegradering.toLowerCase() === 'fortrolig' && !includeFortrolig) {
-    usefulAddress.gateadresse = 'Fortrolig adresse'
-    return usefulAddress
-  }
-  if (usefulAddress.adressegradering.toLowerCase() === 'strengtfortrolig' && !includeFortrolig) {
-    usefulAddress.gateadresse = 'Strengt fortrolig adresse'
-    return usefulAddress
-  }
-  if (usefulAddress.adressegradering.toLowerCase() === 'klientadresse' && !includeFortrolig) {
-    usefulAddress.gateadresse = 'Klientadresse'
-    return usefulAddress
-  }
-
-  if (address.vegadresse) {
-    usefulAddress.gateadresse = address.vegadresse.adressenummer
-      ? `${address.vegadresse.adressenavn} ${address.vegadresse.adressenummer.husnummer}${address.vegadresse.adressenummer.husbokstav ?? ''}`
-      : address.vegadresse.adressenavn
-    usefulAddress.postnummer = address.vegadresse.poststed.postnummer || defaultPostAdresse.postnummer
-    usefulAddress.poststed = address.vegadresse.poststed.poststedsnavn || defaultPostAdresse.poststed
-  } else if (address.matrikkeladresse) {
-    usefulAddress.gateadresse = `${address.matrikkeladresse.coAdressenavn ? `${address.matrikkeladresse.coAdressenavn} ` : ''}${address.matrikkeladresse.adressetilleggsnavn ?? defaultPostAdresse.gateadresse}`
-    usefulAddress.postnummer = address.matrikkeladresse.poststed.postnummer || defaultPostAdresse.postnummer
-    usefulAddress.poststed = address.matrikkeladresse.poststed.poststedsnavn || defaultPostAdresse.poststed
-  } else if (address.ukjentBosted) {
-    // ikke gjør noe (bruk default)
-  } else if (address.postboksadresse) {
-    usefulAddress.gateadresse = `${address.postboksadresse.postbokseier ? address.postboksadresse.postbokseier + addressDelimiter : ''}${address.postboksadresse.postboks}`
-    usefulAddress.postnummer = address.postboksadresse.poststed.postnummer || defaultPostAdresse.postnummer
-    usefulAddress.poststed = address.postboksadresse.poststed.poststedsnavn || defaultPostAdresse.poststed
-  } else if (address.postadresseIFrittFormat) {
-    let megaadresse = ''
-    if (address.postadresseIFrittFormat.adresselinje) {
-      megaadresse = address.postadresseIFrittFormat.adresselinje.join(addressDelimiter)
-    }
-    usefulAddress.gateadresse = trimAddress(megaadresse) || 'Unknown address'
-    usefulAddress.postnummer = address.postadresseIFrittFormat.poststed.postnummer || defaultPostAdresse.postnummer
-    usefulAddress.poststed = address.postadresseIFrittFormat.poststed.poststedsnavn || defaultPostAdresse.poststed
-  } else if (address.utenlandskAdresse) {
-    let megaadresse = ''
-    if (address.utenlandskAdresse.coAdressenavn) {
-      megaadresse += address.utenlandskAdresse.coAdressenavn + addressDelimiter
-    }
-    if (address.utenlandskAdresse.postboks) {
-      megaadresse += address.utenlandskAdresse.postboks + addressDelimiter
-    }
-    if (address.utenlandskAdresse.adressenavn) {
-      megaadresse += address.utenlandskAdresse.adressenavn + addressDelimiter
-    }
-    if (address.utenlandskAdresse.bygning) {
-      megaadresse += address.utenlandskAdresse.bygning + addressDelimiter
-    }
-    if (address.utenlandskAdresse.boenhet) {
-      megaadresse += address.utenlandskAdresse.boenhet + addressDelimiter
-    }
-    if (address.utenlandskAdresse.etasjenummer) {
-      megaadresse += address.utenlandskAdresse.etasjenummer + addressDelimiter
-    }
-    let megapoststed = ''
-    if (address.utenlandskAdresse.byEllerStedsnavn) {
-      megapoststed += address.utenlandskAdresse.byEllerStedsnavn + addressDelimiter
-    }
-    if (address.utenlandskAdresse.region) {
-      megapoststed += address.utenlandskAdresse.region + addressDelimiter
-    }
-    if (address.utenlandskAdresse.distriktsnavn) {
-      megapoststed += address.utenlandskAdresse.distriktsnavn + addressDelimiter
-    }
-    usefulAddress.gateadresse = trimAddress(megaadresse) || 'Unknown address'
-    usefulAddress.postnummer = address.utenlandskAdresse.postkode || 'Unknown post code'
-    usefulAddress.poststed = trimAddress(megapoststed) || 'UNKNOWN'
-    usefulAddress.landkode = address.utenlandskAdresse.landkode
-  } else if (address.utenlandskAdresseIFrittFormat) {
-    let megaadresse = ''
-    if (address.utenlandskAdresseIFrittFormat.adresselinje) {
-      megaadresse = address.utenlandskAdresseIFrittFormat.adresselinje.join(addressDelimiter)
-    }
-    usefulAddress.gateadresse = trimAddress(megaadresse) || 'Unknown address'
-    usefulAddress.postnummer = address.utenlandskAdresseIFrittFormat.postkode || 'Unknown post code'
-    usefulAddress.poststed = address.utenlandskAdresseIFrittFormat.byEllerStedsnavn || 'UNKNOWN'
-    usefulAddress.landkode = address.utenlandskAdresseIFrittFormat.landkode
-  } else if (address.adressenErUkjent) {
-    // ikke gjør noe (bruk default)
-  } else {
-    throw new Error('This is not an address!')
-  }
-
-  return usefulAddress
+const defaultPostAdresse: Address = {
+  ...defaultAddressDetails,
+  adressegradering: 'ugradert'
 }
+
+// ── Generic helpers ──────────────────────────────────────────────────────────
+
+const isNonEmpty = (value: string | undefined): value is string => Boolean(value)
+
+const joinNonEmpty = (parts: Array<string | undefined>, separator = addressDelimiter): string => parts.filter(isNonEmpty).join(separator)
+
+const currentEntry = <T extends { erGjeldende: boolean }>(arr: T[] | undefined): T | undefined => arr?.find((entry) => entry.erGjeldende)
+
+const currentEntries = <T extends { erGjeldende: boolean }>(arr: T[] | undefined): T[] => arr?.filter((entry) => entry.erGjeldende) ?? []
+
+const capitalizeWord = (word: string): string => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+
+export const capitalizeWords = (data: string): string =>
+  data
+    .split(' ')
+    .map((word, index) => {
+      const isSkipWord = index > 0 && skipWords.test(word.toLowerCase())
+      return isSkipWord ? word.toLowerCase() : capitalizeWord(word)
+    })
+    .join(' ')
 
 export const getAge = (birthDate: string): number => {
   const birth = new Date(birthDate)
@@ -294,60 +214,149 @@ export const getAge = (birthDate: string): number => {
   return now.getFullYear() - birth.getFullYear() - (hasHadBirthdayThisYear ? 0 : 1)
 }
 
+// ── Address builders ─────────────────────────────────────────────────────────
+// One builder per FREG address shape. Each returns the address fields without
+// adressegradering — getAddress wraps the result with the gradering value.
+
+const buildVegadresse = (a: VegAdresse): AddressDetails => {
+  const husnummer = a.adressenummer ? `${a.adressenummer.husnummer}${a.adressenummer.husbokstav ?? ''}` : ''
+  return {
+    gateadresse: husnummer ? `${a.adressenavn} ${husnummer}` : a.adressenavn,
+    postnummer: a.poststed.postnummer || defaultAddressDetails.postnummer,
+    poststed: a.poststed.poststedsnavn || defaultAddressDetails.poststed,
+    landkode: defaultAddressDetails.landkode
+  }
+}
+
+const buildMatrikkeladresse = (a: MatrikkelAdresse): AddressDetails => {
+  const tilleggsnavn = a.adressetilleggsnavn ?? defaultAddressDetails.gateadresse
+  return {
+    gateadresse: a.coAdressenavn ? `${a.coAdressenavn} ${tilleggsnavn}` : tilleggsnavn,
+    postnummer: a.poststed.postnummer || defaultAddressDetails.postnummer,
+    poststed: a.poststed.poststedsnavn || defaultAddressDetails.poststed,
+    landkode: defaultAddressDetails.landkode
+  }
+}
+
+const buildPostboksadresse = (a: PostboksAdresse): AddressDetails => ({
+  gateadresse: joinNonEmpty([a.postbokseier, a.postboks]),
+  postnummer: a.poststed.postnummer || defaultAddressDetails.postnummer,
+  poststed: a.poststed.poststedsnavn || defaultAddressDetails.poststed,
+  landkode: defaultAddressDetails.landkode
+})
+
+const buildPostadresseIFrittFormat = (a: PostadresseIFrittFormat): AddressDetails => ({
+  gateadresse: joinNonEmpty(a.adresselinje ?? []) || 'Unknown address',
+  postnummer: a.poststed.postnummer || defaultAddressDetails.postnummer,
+  poststed: a.poststed.poststedsnavn || defaultAddressDetails.poststed,
+  landkode: defaultAddressDetails.landkode
+})
+
+const buildUtenlandskAdresse = (a: UtenlandskAdresse): AddressDetails => ({
+  gateadresse: joinNonEmpty([a.coAdressenavn, a.postboks, a.adressenavn, a.bygning, a.boenhet, a.etasjenummer]) || 'Unknown address',
+  postnummer: a.postkode || 'Unknown post code',
+  poststed: joinNonEmpty([a.byEllerStedsnavn, a.region, a.distriktsnavn]) || 'UNKNOWN',
+  landkode: a.landkode
+})
+
+const buildUtenlandskAdresseIFrittFormat = (a: UtenlandskAdresseIFrittFormat): AddressDetails => ({
+  gateadresse: joinNonEmpty(a.adresselinje ?? []) || 'Unknown address',
+  postnummer: a.postkode || 'Unknown post code',
+  poststed: a.byEllerStedsnavn || 'UNKNOWN',
+  landkode: a.landkode
+})
+
+const extractAddressDetails = (entry: FregAddressEntry): AddressDetails => {
+  if (entry.vegadresse) {
+    return buildVegadresse(entry.vegadresse)
+  }
+  if (entry.matrikkeladresse) {
+    return buildMatrikkeladresse(entry.matrikkeladresse)
+  }
+  if (entry.postboksadresse) {
+    return buildPostboksadresse(entry.postboksadresse)
+  }
+  if (entry.postadresseIFrittFormat) {
+    return buildPostadresseIFrittFormat(entry.postadresseIFrittFormat)
+  }
+  if (entry.utenlandskAdresse) {
+    return buildUtenlandskAdresse(entry.utenlandskAdresse)
+  }
+  if (entry.utenlandskAdresseIFrittFormat) {
+    return buildUtenlandskAdresseIFrittFormat(entry.utenlandskAdresseIFrittFormat)
+  }
+  if (entry.ukjentBosted || entry.adressenErUkjent) {
+    return { ...defaultAddressDetails }
+  }
+  throw new Error('This is not an address!')
+}
+
+const getAddress = (entry: FregAddressEntry | null | undefined, options: RepackOptions = {}): Address | null => {
+  if (!entry) {
+    return null
+  }
+
+  const protectedLabel = options.includeFortrolig ? undefined : protectedGraderingLabels[entry.adressegradering.toLowerCase()]
+  if (protectedLabel) {
+    return {
+      ...defaultAddressDetails,
+      adressegradering: entry.adressegradering,
+      gateadresse: protectedLabel
+    }
+  }
+
+  return {
+    ...extractAddressDetails(entry),
+    adressegradering: entry.adressegradering
+  }
+}
+
+// ── Name builder ─────────────────────────────────────────────────────────────
+
+type FullName = { fornavn: string; etternavn: string; fulltnavn: string }
+
+const buildFullName = (navn: FregNavn): FullName => {
+  const fornavn = [navn.fornavn, navn.mellomnavn].filter(isNonEmpty).map(capitalizeWords).join(' ')
+  const etternavn = capitalizeWords(navn.etternavn)
+  return { fornavn, etternavn, fulltnavn: `${fornavn} ${etternavn}` }
+}
+
 // ── Main export ──────────────────────────────────────────────────────────────
 
 export const repackFreg = (fregRes: FregPerson, options: RepackOptions = {}): RepackedPerson => {
   const { includeRawFreg, includeForeldreansvar, includeFamilie } = options
 
-  const dontContactStatuses = ['doed', 'opphoert']
-  const status = fregRes.status.find((ele) => ele.erGjeldende)?.status ?? 'Ukjent status'
+  const status = currentEntry(fregRes.status)?.status ?? 'Ukjent status'
   const kanKontaktes = !dontContactStatuses.includes(status)
 
-  const navn = fregRes.navn.find((ele) => ele.erGjeldende)
+  const navn = currentEntry(fregRes.navn)
   if (!navn) {
     throw new Error('Person does not have a valid name')
   }
-  const fornavn = navn.mellomnavn ? `${capitalizeWords(navn.fornavn)} ${capitalizeWords(navn.mellomnavn)}` : capitalizeWords(navn.fornavn)
-  const etternavn = capitalizeWords(navn.etternavn)
-  const fulltnavn = `${fornavn} ${etternavn}`
+  const { fornavn, etternavn, fulltnavn } = buildFullName(navn)
 
-  const foedselsEllerDNummer = fregRes.identifikasjonsnummer.find((ele) => ele.erGjeldende)?.foedselsEllerDNummer
+  const foedselsEllerDNummer = currentEntry(fregRes.identifikasjonsnummer)?.foedselsEllerDNummer
   if (!foedselsEllerDNummer) {
     throw new Error('Person does not have a valid id-number (ssn)')
   }
 
-  const foedselsdato = fregRes.foedsel.find((ele) => ele.erGjeldende)?.foedselsdato
+  const foedselsdato = currentEntry(fregRes.foedsel)?.foedselsdato
   const alder = foedselsdato ? getAge(foedselsdato) : null
   const doedsfall = fregRes.doedsfall?.erGjeldende ? fregRes.doedsfall : null
 
-  const adressebeskyttelse = fregRes.adressebeskyttelse?.filter((ele) => ele.erGjeldende).map((ele) => ele.graderingsnivaa) ?? []
+  const adressebeskyttelse = currentEntries(fregRes.adressebeskyttelse).map((entry) => entry.graderingsnivaa)
 
-  const bostedsadresse = getAddress(fregRes.bostedsadresse?.find((ele) => ele.erGjeldende) ?? null, options)
-  const deltbostedsadresse = getAddress(fregRes.deltBosted?.find((ele) => ele.erGjeldende) ?? null, options)
-  const oppholdsadresse = getAddress(fregRes.oppholdsadresse?.find((ele) => ele.erGjeldende) ?? null, options)
-  let postadresse = getAddress(fregRes.postadresse?.find((ele) => ele.erGjeldende) ?? null, options)
-  const postadresseIUtlandet = getAddress(fregRes.postadresseIUtlandet?.find((ele) => ele.erGjeldende) ?? null, options)
+  const bostedsadresse = getAddress(currentEntry(fregRes.bostedsadresse), options)
+  const deltbostedsadresse = getAddress(currentEntry(fregRes.deltBosted), options)
+  const oppholdsadresse = getAddress(currentEntry(fregRes.oppholdsadresse), options)
+  const postadresseIUtlandet = getAddress(currentEntry(fregRes.postadresseIUtlandet), options)
 
-  const foreldreansvar = fregRes.foreldreansvar?.filter((ele) => ele.erGjeldende) ?? []
-  const familie = fregRes.familierelasjon?.filter((ele) => ele.erGjeldende) ?? []
-
-  // En person kan ha: bostedsadresse, oppholdsadresse, postadresse og postadresse i utlandet.
-  // Bruk bostedsadresse (evt delt bosted, opphold, postadresse i utlandet) som fallback for postadresse.
-  if (!postadresse) {
-    postadresse = bostedsadresse
-  }
-  if (!postadresse) {
-    postadresse = deltbostedsadresse
-  }
-  if (!postadresse) {
-    postadresse = oppholdsadresse
-  }
-  if (!postadresse) {
-    postadresse = postadresseIUtlandet
-  }
-  if (!postadresse) {
-    postadresse = { ...defaultPostAdresse }
-  }
+  // Fallback chain for postadresse: own postadresse → bosted → delt bosted → opphold → utenlandsk → default.
+  const postadresse = getAddress(currentEntry(fregRes.postadresse), options) ??
+    bostedsadresse ??
+    deltbostedsadresse ??
+    oppholdsadresse ??
+    postadresseIUtlandet ?? { ...defaultPostAdresse }
 
   const repacked: RepackedPerson = {
     foedselsEllerDNummer,
@@ -368,10 +377,10 @@ export const repackFreg = (fregRes: FregPerson, options: RepackOptions = {}): Re
   }
 
   if (includeForeldreansvar) {
-    repacked.foreldreansvar = foreldreansvar
+    repacked.foreldreansvar = currentEntries(fregRes.foreldreansvar)
   }
   if (includeFamilie) {
-    repacked.familie = familie
+    repacked.familie = currentEntries(fregRes.familierelasjon)
   }
   if (includeRawFreg) {
     repacked.rawFreg = fregRes

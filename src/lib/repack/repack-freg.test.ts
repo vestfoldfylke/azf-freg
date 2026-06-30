@@ -8,6 +8,14 @@ import { capitalizeWords, type FregPerson, getAge, repackFreg } from './repack-f
 const loadFixture = (filename: string): FregPerson =>
   JSON.parse(readFileSync(path.join(import.meta.dirname, '__fixtures__', filename), 'utf-8')) as FregPerson
 
+const buildPerson = (overrides: Partial<FregPerson> = {}): FregPerson => ({
+  status: [{ erGjeldende: true, status: 'bosatt' }],
+  navn: [{ erGjeldende: true, fornavn: 'Ola', etternavn: 'Nordmann' }],
+  identifikasjonsnummer: [{ erGjeldende: true, foedselsEllerDNummer: '01010101010' }],
+  foedsel: [{ erGjeldende: true, foedselsdato: '1990-01-01' }],
+  ...overrides
+})
+
 const personMedBostedsdresse = loadFixture('personMedBostedsadresse.json')
 const personMedPostdresseOgBostedsadresse = loadFixture('personMedPostadresseOgBostedsadresse.json')
 const personMedPostdresseFrittFormat = loadFixture('personMedPostadresseFrittFormat.json')
@@ -193,5 +201,228 @@ describe('capitalizeWords', () => {
   })
   it('Kapitaliserer skipword som er første ord i strengen', () => {
     assert.strictEqual(capitalizeWords('von trapp'), 'Von Trapp')
+  })
+})
+
+describe('Adresseformer som ikke dekkes av fixtures', () => {
+  it('matrikkeladresse: bygger gateadresse fra coAdressenavn og adressetilleggsnavn', () => {
+    const repacked = repackFreg(
+      buildPerson({
+        bostedsadresse: [
+          {
+            erGjeldende: true,
+            adressegradering: 'ugradert',
+            matrikkeladresse: {
+              coAdressenavn: 'C/O Pelle',
+              adressetilleggsnavn: 'Hytte ved sjøen',
+              poststed: { postnummer: '1234', poststedsnavn: 'TESTBY' }
+            }
+          }
+        ]
+      })
+    )
+    assert.strictEqual(repacked.bostedsadresse?.gateadresse, 'C/O Pelle Hytte ved sjøen')
+    assert.strictEqual(repacked.bostedsadresse?.postnummer, '1234')
+    assert.strictEqual(repacked.bostedsadresse?.poststed, 'TESTBY')
+  })
+
+  it('matrikkeladresse: bruker default gateadresse når både coAdressenavn og adressetilleggsnavn mangler', () => {
+    const repacked = repackFreg(
+      buildPerson({
+        bostedsadresse: [
+          {
+            erGjeldende: true,
+            adressegradering: 'ugradert',
+            matrikkeladresse: { poststed: { postnummer: '1234', poststedsnavn: 'TESTBY' } }
+          }
+        ]
+      })
+    )
+    assert.strictEqual(repacked.bostedsadresse?.gateadresse, 'Ukjent adresse')
+  })
+
+  it('ukjentBosted: returnerer default-felter med riktig adressegradering', () => {
+    const repacked = repackFreg(
+      buildPerson({
+        bostedsadresse: [{ erGjeldende: true, adressegradering: 'ugradert', ukjentBosted: {} }]
+      })
+    )
+    assert.deepStrictEqual(repacked.bostedsadresse, {
+      adressegradering: 'ugradert',
+      gateadresse: 'Ukjent adresse',
+      postnummer: '9999',
+      poststed: 'UKJENT',
+      landkode: 'NO'
+    })
+  })
+
+  it('adressenErUkjent: returnerer default-felter', () => {
+    const repacked = repackFreg(
+      buildPerson({
+        oppholdsadresse: [{ erGjeldende: true, adressegradering: 'ugradert', adressenErUkjent: true }]
+      })
+    )
+    assert.deepStrictEqual(repacked.oppholdsadresse, {
+      adressegradering: 'ugradert',
+      gateadresse: 'Ukjent adresse',
+      postnummer: '9999',
+      poststed: 'UKJENT',
+      landkode: 'NO'
+    })
+  })
+
+  it('Kaster når adressen ikke matcher noen kjent form', () => {
+    const person = buildPerson({
+      bostedsadresse: [{ erGjeldende: true, adressegradering: 'ugradert' }]
+    })
+    assert.throws(() => repackFreg(person), /This is not an address!/)
+  })
+
+  it('strengtFortrolig uten includeFortrolig skjuler adressen bak "Strengt fortrolig adresse"', () => {
+    const repacked = repackFreg(
+      buildPerson({
+        bostedsadresse: [
+          {
+            erGjeldende: true,
+            adressegradering: 'strengtFortrolig',
+            vegadresse: {
+              adressenavn: 'Skjult vei',
+              adressenummer: { husnummer: '1' },
+              poststed: { postnummer: '0001', poststedsnavn: 'OSLO' }
+            }
+          }
+        ]
+      })
+    )
+    assert.strictEqual(repacked.bostedsadresse?.gateadresse, 'Strengt fortrolig adresse')
+    assert.strictEqual(repacked.bostedsadresse?.poststed, 'UKJENT')
+    assert.strictEqual(repacked.bostedsadresse?.adressegradering, 'strengtFortrolig')
+  })
+})
+
+describe('Postadresse-fallback-kjede', () => {
+  const vegEntry = (suffix: string) => ({
+    erGjeldende: true,
+    adressegradering: 'ugradert',
+    vegadresse: {
+      adressenavn: `Test${suffix}`,
+      adressenummer: { husnummer: '1' },
+      poststed: { postnummer: '1234', poststedsnavn: 'TESTBY' }
+    }
+  })
+
+  it('Bruker deltBosted når postadresse og bostedsadresse mangler', () => {
+    const repacked = repackFreg(buildPerson({ deltBosted: [vegEntry('Delt')] }))
+    assert.strictEqual(repacked.postadresse.gateadresse, 'TestDelt 1')
+  })
+
+  it('Bruker oppholdsadresse når postadresse, bosteds- og deltBosted mangler', () => {
+    const repacked = repackFreg(buildPerson({ oppholdsadresse: [vegEntry('Opphold')] }))
+    assert.strictEqual(repacked.postadresse.gateadresse, 'TestOpphold 1')
+  })
+
+  it('Bruker postadresseIUtlandet som siste utvei før default', () => {
+    const repacked = repackFreg(buildPerson({ postadresseIUtlandet: [vegEntry('Utland')] }))
+    assert.strictEqual(repacked.postadresse.gateadresse, 'TestUtland 1')
+  })
+
+  it('Faller tilbake til defaultPostAdresse når ingen adresser finnes', () => {
+    const repacked = repackFreg(buildPerson())
+    assert.deepStrictEqual(repacked.postadresse, {
+      adressegradering: 'ugradert',
+      gateadresse: 'Ukjent adresse',
+      postnummer: '9999',
+      poststed: 'UKJENT',
+      landkode: 'NO'
+    })
+  })
+})
+
+describe('status og kanKontaktes', () => {
+  it('Setter kanKontaktes=true for vanlig status', () => {
+    const repacked = repackFreg(buildPerson({ status: [{ erGjeldende: true, status: 'bosatt' }] }))
+    assert.strictEqual(repacked.status, 'bosatt')
+    assert.strictEqual(repacked.kanKontaktes, true)
+  })
+
+  it('Setter kanKontaktes=false for status "doed"', () => {
+    const repacked = repackFreg(buildPerson({ status: [{ erGjeldende: true, status: 'doed' }] }))
+    assert.strictEqual(repacked.status, 'doed')
+    assert.strictEqual(repacked.kanKontaktes, false)
+  })
+
+  it('Setter kanKontaktes=false for status "opphoert"', () => {
+    const repacked = repackFreg(buildPerson({ status: [{ erGjeldende: true, status: 'opphoert' }] }))
+    assert.strictEqual(repacked.kanKontaktes, false)
+  })
+
+  it('Faller tilbake til "Ukjent status" når ingen status er gjeldende', () => {
+    const repacked = repackFreg(buildPerson({ status: [] }))
+    assert.strictEqual(repacked.status, 'Ukjent status')
+    assert.strictEqual(repacked.kanKontaktes, true)
+  })
+})
+
+describe('doedsfall', () => {
+  it('Returnerer doedsfall-objekt når erGjeldende=true', () => {
+    const repacked = repackFreg(buildPerson({ doedsfall: { erGjeldende: true } }))
+    assert.deepStrictEqual(repacked.doedsfall, { erGjeldende: true })
+  })
+
+  it('Returnerer null når doedsfall.erGjeldende=false', () => {
+    const repacked = repackFreg(buildPerson({ doedsfall: { erGjeldende: false } }))
+    assert.strictEqual(repacked.doedsfall, null)
+  })
+
+  it('Returnerer null når doedsfall mangler', () => {
+    const repacked = repackFreg(buildPerson())
+    assert.strictEqual(repacked.doedsfall, null)
+  })
+})
+
+describe('Manglende felter', () => {
+  it('alder=null og foedselsdato=undefined når ingen gjeldende foedsel finnes', () => {
+    const repacked = repackFreg(buildPerson({ foedsel: [] }))
+    assert.strictEqual(repacked.alder, null)
+    assert.strictEqual(repacked.foedselsdato, undefined)
+  })
+
+  it('Kaster når ingen gjeldende navn finnes', () => {
+    assert.throws(() => repackFreg(buildPerson({ navn: [] })), /Person does not have a valid name/)
+  })
+
+  it('Kaster når ingen gjeldende identifikasjonsnummer finnes', () => {
+    assert.throws(() => repackFreg(buildPerson({ identifikasjonsnummer: [] })), /Person does not have a valid id-number/)
+  })
+})
+
+describe('Options', () => {
+  it('includeRawFreg: inkluderer rawFreg på outputtet', () => {
+    const person = buildPerson()
+    const repacked = repackFreg(person, { includeRawFreg: true })
+    assert.strictEqual(repacked.rawFreg, person)
+  })
+
+  it('includeRawFreg: rawFreg er undefined når option ikke er satt', () => {
+    const repacked = repackFreg(buildPerson())
+    assert.strictEqual(repacked.rawFreg, undefined)
+  })
+
+  it('includeFamilie: inkluderer kun gjeldende familierelasjoner', () => {
+    const person = buildPerson({
+      familierelasjon: [
+        { erGjeldende: true, relatertPerson: 'A' },
+        { erGjeldende: false, relatertPerson: 'B' },
+        { erGjeldende: true, relatertPerson: 'C' }
+      ]
+    })
+    const repacked = repackFreg(person, { includeFamilie: true })
+    assert.strictEqual(repacked.familie?.length, 2)
+  })
+
+  it('includeFamilie: familie er undefined når option ikke er satt', () => {
+    const person = buildPerson({ familierelasjon: [{ erGjeldende: true }] })
+    const repacked = repackFreg(person)
+    assert.strictEqual(repacked.familie, undefined)
   })
 })

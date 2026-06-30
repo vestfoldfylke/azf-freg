@@ -99,7 +99,10 @@ export const getMaskinportenToken = async (): Promise<string> => {
   logger.info('getMaskinportenToken - Got token from Maskinporten, expires in {ExpiresIn} seconds.', token.expires_in)
 
   if (token.expires_in <= 5) {
-    logger.warn('getMaskinportenToken - Token expires in {ExpiresIn} seconds, which is less than or equal to 5 seconds. Skipping caching and quick returning.', token.expires_in)
+    logger.warn(
+      'getMaskinportenToken - Token expires in {ExpiresIn} seconds, which is less than or equal to 5 seconds. Skipping caching and quick returning.',
+      token.expires_in
+    )
     return token.access_token
   }
 

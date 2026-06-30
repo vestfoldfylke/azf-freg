@@ -90,7 +90,7 @@ export const handler = async (request: HttpRequest, context: InvocationContext):
   logger.info('azf-freg - Personer - new request, checking token')
 
   const authorizationHeader = request.headers.get('authorization')
-  
+
   if (!authorizationHeader) {
     return { status: 401, body: 'Missing authorization header' }
   }
