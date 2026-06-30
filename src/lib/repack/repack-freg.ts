@@ -24,12 +24,12 @@ const trimAddress = (address: string): string => {
 
 // ── FREG API response types ──────────────────────────────────────────────────
 
-interface PoststedInfo {
+type PoststedInfo = {
   postnummer: string
   poststedsnavn: string
 }
 
-interface VegAdresse {
+type VegAdresse = {
   adressenavn: string
   adressenummer?: {
     husnummer: string
@@ -38,24 +38,24 @@ interface VegAdresse {
   poststed: PoststedInfo
 }
 
-interface MatrikkelAdresse {
+type MatrikkelAdresse = {
   coAdressenavn?: string
   adressetilleggsnavn?: string
   poststed: PoststedInfo
 }
 
-interface PostboksAdresse {
+type PostboksAdresse = {
   postbokseier?: string
   postboks: string
   poststed: PoststedInfo
 }
 
-interface PostadresseIFrittFormat {
+type PostadresseIFrittFormat = {
   adresselinje?: string[]
   poststed: PoststedInfo
 }
 
-interface UtenlandskAdresse {
+type UtenlandskAdresse = {
   coAdressenavn?: string
   postboks?: string
   adressenavn?: string
@@ -69,14 +69,14 @@ interface UtenlandskAdresse {
   landkode: string
 }
 
-interface UtenlandskAdresseIFrittFormat {
+type UtenlandskAdresseIFrittFormat = {
   adresselinje?: string[]
   postkode?: string
   byEllerStedsnavn?: string
   landkode: string
 }
 
-interface FregAddressEntry {
+type FregAddressEntry = {
   erGjeldende: boolean
   adressegradering: string
   vegadresse?: VegAdresse
@@ -89,43 +89,43 @@ interface FregAddressEntry {
   adressenErUkjent?: boolean
 }
 
-interface FregStatus {
+type FregStatus = {
   erGjeldende: boolean
   status: string
 }
 
-interface FregNavn {
+type FregNavn = {
   erGjeldende: boolean
   fornavn: string
   mellomnavn?: string
   etternavn: string
 }
 
-interface FregIdentifikasjonsnummer {
+type FregIdentifikasjonsnummer = {
   erGjeldende: boolean
   foedselsEllerDNummer: string
 }
 
-interface FregFoedsel {
+type FregFoedsel = {
   erGjeldende: boolean
   foedselsdato: string
 }
 
-interface FregDoedsfall {
+type FregDoedsfall = {
   erGjeldende: boolean
 }
 
-interface FregAdressebeskyttelse {
+type FregAdressebeskyttelse = {
   erGjeldende: boolean
   graderingsnivaa: string
 }
 
-export interface FregRelasjon {
+export type FregRelasjon = {
   erGjeldende: boolean
   [key: string]: unknown
 }
 
-export interface FregPerson {
+export type FregPerson = {
   status: FregStatus[]
   navn: FregNavn[]
   identifikasjonsnummer: FregIdentifikasjonsnummer[]
@@ -141,14 +141,14 @@ export interface FregPerson {
   familierelasjon?: FregRelasjon[]
 }
 
-export interface RepackOptions {
+export type RepackOptions = {
   includeRawFreg?: boolean
   includeFortrolig?: boolean
   includeForeldreansvar?: boolean
   includeFamilie?: boolean
 }
 
-export interface Address {
+export type Address = {
   adressegradering: string
   gateadresse: string
   postnummer: string
@@ -156,7 +156,7 @@ export interface Address {
   landkode: string
 }
 
-export interface RepackedPerson {
+export type RepackedPerson = {
   foedselsEllerDNummer: string
   status: string
   kanKontaktes: boolean

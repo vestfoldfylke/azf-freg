@@ -5,7 +5,7 @@ import { decodeAadToken } from '../lib/decode-bearer-token.js'
 import { getMaskinportenToken } from '../lib/maskinporten-token.js'
 import { type FregPerson, repackFreg } from '../lib/repack/repack-freg.js'
 
-interface PersonerRequestBody {
+type PersonerRequestBody = {
   ssn?: unknown
   name?: unknown
   birthdate?: unknown

@@ -1,13 +1,13 @@
 // We only decode, as built-in Entra auth verifies. Decode only for metadata — not authentication.
 
-interface RawJwtPayload {
+type RawJwtPayload = {
   upn?: string
   appid?: string
   oid?: string
   roles?: string[]
 }
 
-export interface DecodeResult {
+export type DecodeResult = {
   upn: string
   appid: string
   oid: string
