@@ -59,10 +59,6 @@ const parsePersonerRequest = (body: PersonerRequestBody): ParseResult => {
 }
 
 const buildPersonerUrl = (query: PersonerQuery): URL => {
-  if (!config.FREG.URL || !config.FREG.RETTIGHET) {
-    throw new Error('FREG URL or RETTIGHET is not configured')
-  }
-
   const base = `${config.FREG.URL}/${config.FREG.RETTIGHET}/api/v1/personer`
   if (query.kind === 'ssn') {
     return new URL(`${base}/${query.ssn}`)
@@ -90,7 +86,7 @@ export const handler = async (request: HttpRequest, context: InvocationContext):
   }
 
   if (!decoded.roles.includes(config.API_ROLE)) {
-    return { status: 401, body: 'Access token does not include required role for this operation' }
+    return { status: 403, body: 'Access token does not include required role for this operation' }
   }
 
   const caller = `${decoded.appid}${decoded.upn ? ` - ${decoded.upn}` : ''}`
@@ -115,9 +111,18 @@ export const handler = async (request: HttpRequest, context: InvocationContext):
     return { status: 400, body: 'Body is missing' }
   }
 
+  if (typeof body !== 'object' || Array.isArray(body)) {
+    return { status: 400, body: 'Body must be a JSON object' }
+  }
+
   const parsed = parsePersonerRequest(body)
   if (!parsed.ok) {
     return { status: 400, body: parsed.error }
+  }
+
+  if (!config.FREG.URL || !config.FREG.RETTIGHET) {
+    logger.error('azf-freg - Personer - {Caller} - FREG_URL or FREG_RETTIGHET is not set in environment', caller)
+    return internalError('FREG_URL or FREG_RETTIGHET is not set in environment')
   }
 
   const url = buildPersonerUrl(parsed.query)
