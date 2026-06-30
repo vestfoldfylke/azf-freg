@@ -15,9 +15,7 @@ type PersonerRequestBody = {
   includeFamilie?: boolean
 }
 
-type PersonerQuery =
-  | { kind: 'ssn'; ssn: string }
-  | { kind: 'name'; name: string; birthdate: string }
+type PersonerQuery = { kind: 'ssn'; ssn: string } | { kind: 'name'; name: string; birthdate: string }
 
 type PersonerOptions = {
   includeRawFreg: boolean
@@ -26,9 +24,7 @@ type PersonerOptions = {
   includeFamilie: boolean
 }
 
-type ParseResult =
-  | { ok: true; query: PersonerQuery; options: PersonerOptions }
-  | { ok: false; error: string }
+type ParseResult = { ok: true; query: PersonerQuery; options: PersonerOptions } | { ok: false; error: string }
 
 const optionFields = ['includeRawFreg', 'includeFortrolig', 'includeForeldreansvar', 'includeFamilie'] as const
 
@@ -79,7 +75,7 @@ const buildPersonerUrl = (query: PersonerQuery): URL => {
 
 export const handler = async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
   const correlationId = context.invocationId
-  
+
   const internalError = (source: string): HttpResponseInit => ({
     status: 500,
     body: `Internal error in ${source}. Reference id: ${correlationId}`
@@ -147,18 +143,30 @@ export const handler = async (request: HttpRequest, context: InvocationContext):
 
     if (!response.ok) {
       const errorMessage = await response.text().catch(() => `HTTP ${response.status}`)
-      logger.error('azf-freg - Personer - {Caller} - {CorrelationId} - FREG returned error {Status}: {ErrorMessage}', caller, correlationId, response.status, errorMessage)
+      logger.error(
+        'azf-freg - Personer - {Caller} - {CorrelationId} - FREG returned error {Status}: {ErrorMessage}',
+        caller,
+        correlationId,
+        response.status,
+        errorMessage
+      )
       return internalError('calling freg api')
     }
 
     const data = (await response.json()) as FregPerson
     logger.info('azf-freg - Personer - {Caller} - got data, repacking result', caller)
-    
+
     const repacked = repackFreg(data, parsed.options)
     logger.info('azf-freg - Personer - {Caller} - successfully repacked result', caller)
     return { status: 200, jsonBody: repacked }
   } catch (error) {
-    logger.errorException(error, 'azf-freg - Personer - {Caller} - {CorrelationId} - error calling FREG: {Error}', caller, correlationId, String(error))
+    logger.errorException(
+      error,
+      'azf-freg - Personer - {Caller} - {CorrelationId} - error calling FREG: {Error}',
+      caller,
+      correlationId,
+      String(error)
+    )
     return internalError('azure function api call')
   }
 }

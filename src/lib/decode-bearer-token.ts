@@ -11,9 +11,7 @@ type RawJwtPayload = {
   roles?: string[]
 }
 
-export type DecodeResult =
-  | { ok: true; appid: string; upn: string | null; oid: string; roles: string[] }
-  | { ok: false; reason: string }
+export type DecodeResult = { ok: true; appid: string; upn: string | null; oid: string; roles: string[] } | { ok: false; reason: string }
 
 const decodeJwt = (token: string): RawJwtPayload => {
   const base64Payload = token.replace('Bearer ', '').split('.')[1]
