@@ -60,13 +60,13 @@ const parsePersonerRequest = (body: PersonerRequestBody): ParseResult => {
 
 const buildPersonerUrl = (query: PersonerQuery): URL => {
   const base = `${config.FREG.URL}/${config.FREG.RETTIGHET}/api/v1/personer`
+  const parts = 'part=person-basis&part=relasjon-utvidet'
   if (query.kind === 'ssn') {
-    return new URL(`${base}/${query.ssn}`)
+    return new URL(`${base}/${query.ssn}?${parts}`)
   }
-  const url = new URL(`${base}/entydigsoek`)
-  url.searchParams.set('foedselsdato', query.birthdate)
-  url.searchParams.set('navn', query.name)
-  return url
+  const foedselsdato = encodeURIComponent(query.birthdate)
+  const navn = encodeURIComponent(query.name)
+  return new URL(`${base}/entydigsoek?foedselsdato=${foedselsdato}&navn=${navn}&${parts}`)
 }
 
 export const handler = async (request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> => {
@@ -126,8 +126,6 @@ export const handler = async (request: HttpRequest, context: InvocationContext):
   }
 
   const url = buildPersonerUrl(parsed.query)
-  url.searchParams.append('part', 'person-basis')
-  url.searchParams.append('part', 'relasjon-utvidet')
 
   try {
     logger.info('azf-freg - Personer - {Caller} - calling FREG', caller)
