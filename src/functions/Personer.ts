@@ -63,6 +63,10 @@ const parsePersonerRequest = (body: PersonerRequestBody): ParseResult => {
 }
 
 const buildPersonerUrl = (query: PersonerQuery): URL => {
+  if (!config.FREG.URL || !config.FREG.RETTIGHET) {
+    throw new Error('FREG URL or RETTIGHET is not configured')
+  }
+
   const base = `${config.FREG.URL}/${config.FREG.RETTIGHET}/api/v1/personer`
   if (query.kind === 'ssn') {
     return new URL(`${base}/${query.ssn}`)

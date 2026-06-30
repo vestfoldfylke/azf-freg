@@ -7,8 +7,8 @@ export const config = {
     PRIVATE_KEY_BASE64: process.env.MASKINPORTEN_PRIVATE_KEY_BASE64
   },
   FREG: {
-    URL: process.env.FREG_URL ?? 'www.vg.vg.vg.no',
-    RETTIGHET: process.env.FREG_RETTIGHET ?? 'rettighet'
+    URL: process.env.FREG_URL,
+    RETTIGHET: process.env.FREG_RETTIGHET
   },
   API_ROLE: process.env.API_ROLE ?? 'Freg.Read'
 }
