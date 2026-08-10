@@ -186,7 +186,7 @@ export const handler = async (request: HttpRequest, context: InvocationContext):
       correlationId,
       String(error)
     )
-    
+
     return internalError('azure function api call')
   }
 }
