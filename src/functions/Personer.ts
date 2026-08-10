@@ -110,7 +110,7 @@ export const handler = async (request: HttpRequest, context: InvocationContext):
   }
 
   const caller = `${decoded.appid}${decoded.upn ? ` - ${decoded.upn}` : ''}`
-  logger.info('azf-freg - Personer - {@Caller} - token ok, fetching Maskinporten token', caller)
+  logger.info('azf-freg - Personer - {Caller} - token ok, fetching Maskinporten token', caller)
 
   let accessToken: string
   try {
