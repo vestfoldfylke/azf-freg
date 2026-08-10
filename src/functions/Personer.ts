@@ -34,38 +34,47 @@ const parsePersonerRequest = (body: PersonerRequestBody): ParseResult => {
       return { ok: false, error: `Property "${field}" must be a boolean` }
     }
   }
+
   const options: PersonerOptions = {
     includeRawFreg: body.includeRawFreg ?? false,
     includeFortrolig: body.includeFortrolig ?? false,
     includeForeldreansvar: body.includeForeldreansvar ?? false,
     includeFamilie: body.includeFamilie ?? false
   }
+
   if (body.ssn) {
     if (typeof body.ssn !== 'string' || !/^\d{11}$/.test(body.ssn)) {
       return { ok: false, error: 'Property "ssn" must be 11 digits' }
     }
     return { ok: true, query: { kind: 'ssn', ssn: body.ssn }, options }
   }
+
   if (body.name && body.birthdate) {
     if (typeof body.name !== 'string') {
       return { ok: false, error: 'Property "name" must be string' }
     }
+
     if (typeof body.birthdate !== 'string' || !/^\d{8}$/.test(body.birthdate)) {
       return { ok: false, error: 'Property "birthdate" must be format "YYYYMMDD"' }
     }
+
     return { ok: true, query: { kind: 'name', name: body.name, birthdate: body.birthdate }, options }
   }
+
   return { ok: false, error: 'Body is missing required property "ssn" or "name" and "birthdate"' }
 }
 
 const buildPersonerUrl = (query: PersonerQuery): URL => {
   const base = `${config.FREG.URL}/${config.FREG.RETTIGHET}/api/v1/personer`
   const parts = 'part=person-basis&part=relasjon-utvidet'
+
   if (query.kind === 'ssn') {
     return new URL(`${base}/${query.ssn}?${parts}`)
   }
+
   const foedselsdato = encodeURIComponent(query.birthdate)
   const navn = encodeURIComponent(query.name)
+
   return new URL(`${base}/entydigsoek?foedselsdato=${foedselsdato}&navn=${navn}&${parts}`)
 }
 
@@ -167,6 +176,7 @@ export const handler = async (request: HttpRequest, context: InvocationContext):
 
     const repacked = repackFreg(data, parsed.options)
     logger.info('azf-freg - Personer - {Caller} - successfully repacked result', caller)
+
     return { status: 200, jsonBody: repacked }
   } catch (error) {
     logger.errorException(
@@ -176,6 +186,7 @@ export const handler = async (request: HttpRequest, context: InvocationContext):
       correlationId,
       String(error)
     )
+    
     return internalError('azure function api call')
   }
 }
