@@ -104,6 +104,7 @@ dist
 .tern-port
 
 # Certificates
+cert/
 *.pfx
 *.pem
 *.key
@@ -114,3 +115,6 @@ local.settings.json
 
 # Mac
 .DS_Store
+
+# dist-test output
+dist-test

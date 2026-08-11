@@ -125,17 +125,18 @@
   ],
   "postadresse": [
     {
-      "adressegradering": "UGRADERT",
+      "ajourholdstidspunkt": "2021-10-15T10:21:43.227703Z",
       "erGjeldende": true,
-      "gyldighetstidspunkt": "2016-10-11T22:00:00Z",
       "kilde": "Synutopia",
-      "postadresseIFrittFormat": {
-        "adresselinje": [
-          "POSTBOKS 146 BLEIE"
-        ],
+      "aarsak": "Postadresse",
+      "gyldighetstidspunkt": "2021-10-15T10:21:43.227693Z",
+      "adressegradering": "ugradert",
+      "postboksadresse": {
+        "postbokseier": "Skravlete Kabin",
+        "postboks": "Test 221",
         "poststed": {
-          "poststedsnavn": "GUGGENHEIM",
-          "postnummer": "3222"
+          "poststedsnavn": "TRANØY",
+          "postnummer": "8297"
         }
       }
     }
@@ -148,11 +149,16 @@
       "aarsak": "Postadresse",
       "gyldighetstidspunkt": "2021-10-15T10:21:43.227693Z",
       "adressegradering": "ugradert",
+      "utenlandskAdresse": {
+        "adressenavn": "Gatan 10",
+        "postkode": "SE-412 50",
+        "byEllerStedsnavn": "Gothenburg",
+        "landkode": "SE",
+        "region": "Västre Götaland",
+        "coAdressenavn": "Erik Nilsson"
+      },
       "utenlandskAdresseIFrittFormat": {
-        "adresselinje": [
-          "Testadresselinje 1",
-          "Testadresselinje 2"
-        ],
+        "adresselinje": ["Testadresselinje 1", "Testadresselinje 2"],
         "postkode": "Testpostkode utland 55",
         "byEllerStedsnavn": "Litt testby- eller stedsnavn",
         "landkode": "CV"

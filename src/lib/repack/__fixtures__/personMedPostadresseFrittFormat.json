@@ -125,18 +125,15 @@
   ],
   "postadresse": [
     {
-      "ajourholdstidspunkt": "2021-10-15T10:21:43.227703Z",
+      "adressegradering": "UGRADERT",
       "erGjeldende": true,
+      "gyldighetstidspunkt": "2016-10-11T22:00:00Z",
       "kilde": "Synutopia",
-      "aarsak": "Postadresse",
-      "gyldighetstidspunkt": "2021-10-15T10:21:43.227693Z",
-      "adressegradering": "ugradert",
-      "postboksadresse": {
-        "postbokseier": "Skravlete Kabin",
-        "postboks": "Test 221",
+      "postadresseIFrittFormat": {
+        "adresselinje": ["POSTBOKS 146 BLEIE"],
         "poststed": {
-          "poststedsnavn": "TRANØY",
-          "postnummer": "8297"
+          "poststedsnavn": "GUGGENHEIM",
+          "postnummer": "3222"
         }
       }
     }
@@ -150,10 +147,7 @@
       "gyldighetstidspunkt": "2021-10-15T10:21:43.227693Z",
       "adressegradering": "ugradert",
       "utenlandskAdresseIFrittFormat": {
-        "adresselinje": [
-          "Testadresselinje 1",
-          "Testadresselinje 2"
-        ],
+        "adresselinje": ["Testadresselinje 1", "Testadresselinje 2"],
         "postkode": "Testpostkode utland 55",
         "byEllerStedsnavn": "Litt testby- eller stedsnavn",
         "landkode": "CV"
