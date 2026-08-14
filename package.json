@@ -1,6 +1,6 @@
 {
   "name": "azf-freg",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "type": "module",
   "main": "dist/functions/*.js",
   "description": "Azure function for calling FREG",
