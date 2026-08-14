@@ -291,44 +291,37 @@ If true - also returns fortrolig address - use with caution. If not set to false
 
 If set to true - returns who has parent-responsibility for the person/child returned
 
-# Development
-- Clone repo
-- `npm i`
-- Create and set up local.settings.json
-```json
+# Maskinporten setup
+- Logg på samarbeidsportalen / sjolvbetjening hos digdir (du må ha tilgang til å logge på, og bruke KRR-scopet) [les mer på docs.digdir.no](https://docs.digdir.no/docs/Kontaktregisteret/oppslagstjenesten_rest.html)
+- Lag en ny klient (klient-id skal brukes i env)
+- Legg til scope: folkeregister:deling/offentligutenhjemmel / folkeregister:deling/offentligmedhjemmel på klienten
+- Opprett en ny nøkkel. Id-til nøkkel skal brukes i MASKINPORTEN_KID i env. Anbefales at du får en automatisk generert nøkkel, men du kan også laste opp en hvis du absolutt må.
+- Base64-encode nøkkelen, enkleste er å lagre den midlertitig i ./cert/maskinporten_private.pem og kjøre:
+
+```bash
+npm run encode-private-key
+```
+- Kopier verdien du får og legg i MASKINPORTEN_PRIVATE_KEY_BASE64 i miljøvariabel
+- Slett midlertidig lagret nøkkel. Om ting går skeis får du heller lage deg en ny.
+
+## Azure Function
+
+### Application settings (``local.settings.json``)
+
+```json5
 {
   "IsEncrypted": false,
   "Values": {
     "FUNCTIONS_WORKER_RUNTIME": "node",
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-    "NODE_ENV": "dev",
-    "CERTIFICATE_PFX_BASE64": "base64 representation of virksomhetssertifikat.pfx", // use this OR CERTIFICATE_PFX_PATH
-    "CERTIFICATE_PFX_PATH": "absolute path to virksomhetssertifikat.pfx",
-    "CERTIFICATE_PASSPHRASE": "if certificate have passphrase",
-    "MASKINPORTEN_ISSUER": "client id for maskinporten client",
-    "MASKINPORTEN_AUDIENCE": "audience for maskinporten client",
-    "MASKINPORTEN_MED_HJEMMEL_SCOPE": "prefix:scope",
-    "MASKINPORTEN_UTEN_HJEMMEL_SCOPE": "prefix:scope",
-    "MASKINPORTEN_AUTHORIZATION_URL": "maskinporten authorization url",
-    "MASKINPORTEN_TOKEN_URL": "maskinporten token url",
-		"FREG_URL": "folkeregister.tut-tut-tut-lille-bil.no/folkeregisteret",
-    "FREG_RETTIGHET": "for eksempel offentlig-med-hjemmel"
+		"API_ROLE": "<rolleverdi e.g. freg.read>",
+		"FREG_RETTIGHET": "offentlig-med-hjemmel / offentlig-uten-hjemmel",
+		"FREG_URL": "<freg api url>/folkeregisteret",
+    "MASKINPORTEN_DISCOVERY_URL": "https://<env>.maskinporten.no/.well-known/oauth-authorization-server",
+    "MASKINPORTEN_SCOPE": "folkeregister:deling/offentligutenhjemmel ELLER folkeregister:deling/offentligmedhjemmel",
+    "MASKINPORTEN_CLIENT_ID": "<din klient id>",
+    "MASKINPORTEN_KID": "<din key identifier>",
+    "MASKINPORTEN_PRIVATE_KEY_BASE64": "<private key, base64 encoded>",
+    "NODE_ENV": "<env>"
   }
 }
 ```
-- Test the function with
-- `func start`
-
-# Skal du bytte virksomhetssertifikat?
-**Bruk pfx**
-- Last opp det nye sertifikatet som en ny versjon av det som allerede ligger i keyvaulten
-- Resten skal gå av seg selv i løpet av 24 timer (sies det)
-
-# Useful links
-[Freg skatteetatens Swagger-hub](https://app.swaggerhub.com/organizations/Skatteetaten_FREG)
-[Testdata fra skatteetaten](https://www.skatteetaten.no/skjema/testdata/)
-[Spørsmål og svar](https://skatteetaten.github.io/folkeregisteret-api-dokumentasjon/sporsmal-og-svar/)
-[Informasjonsmodell](https://skatteetaten.github.io/folkeregisteret-api-dokumentasjon/informasjonsmodell/)
-
-Funksjonen tar seg ikke av autentisering. Dette må gjøres av AzureAD eller Apim.
-
